@@ -1,0 +1,4313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#F2F7F3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<title>食刻 · 暖食一刻 · 助餐服务</title>
+<style>
+/* ==== assets/base.css ==== */
+/* ==========================================================================
+   食刻 · 暖食一刻  |  base.css
+   设计令牌来自《食刻App首页.psd》取色与图层量测（1125×2436 @3x → 375×812）
+   ========================================================================== */
+
+:root{
+  /* —— 取色（PSD 图层实测）—— */
+  --bg:        #F2F7F3;   /* 页面背景 */
+  --paper:     #FFFFFF;
+  --card:      #F5F8F6;   /* 餐卡 / 卡底 */
+  --card-2:    #F4F7F4;   /* 订单卡 */
+  --deep:      #1C6B4C;   /* 品牌深绿 */
+  --green:     #27A76B;   /* 主绿 */
+  --green-2:   #38956D;
+  --green-3:   #34775B;
+  --mint:      #DFF3E8;
+  --mint-2:    #ADE2C9;
+  --mint-3:    #EBFFF4;
+  --ink:       #2A3A31;   /* 正文 */
+  --muted:     #748278;   /* 次要 */
+  --line:      #E3EDE7;
+  --orange:    #FF8A3D;   /* 补贴价 */
+  --red:       #E5635B;
+  --amber:     #E9A23B;
+  --blue:      #3C7FB0;
+  --shadow:    0 6px 20px rgba(28,107,76,.07);
+  --shadow-2:  0 10px 34px rgba(28,107,76,.13);
+
+  /* —— 版式 —— */
+  --pad: 20px;
+  --r-sm: 10px;
+  --r:    16px;
+  --r-lg: 22px;
+  --fs-body: 13px;
+
+  --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "HarmonyOS Sans SC",
+          "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC",
+          "Noto Sans CJK SC", system-ui, sans-serif;
+  --font-num: "SF Pro Display", -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+  --nav-h: 62px;
+  --zoom: 1;
+}
+
+*,*::before,*::after{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html,body{
+  margin:0; padding:0; height:100%;
+  background:#E8EEE9;
+  font-family:var(--font);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overscroll-behavior:none;
+}
+body{ touch-action:manipulation; }
+button{ font-family:inherit; color:inherit; border:0; background:none; padding:0; cursor:pointer; }
+input,select,textarea{ font-family:inherit; font-size:inherit; color:inherit; }
+a{ color:inherit; text-decoration:none; }
+img{ display:block; max-width:100%; }
+ul,ol{ margin:0; padding:0; list-style:none; }
+h1,h2,h3,h4,p{ margin:0; }
+[hidden]{ display:none !important; }
+::selection{ background:var(--mint-2); }
+
+/* ============================ 设备外框 ============================ */
+
+.device{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #F7FBF8 0%, #E8EEE9 55%, #DDE7E0 100%);
+  overflow:hidden;
+}
+.frame{
+  position:relative;
+  width:100%; height:100%;
+  background:var(--bg);
+  overflow:hidden;
+  /* 关键：transform 让内部固定/绝对定位元素以本框为参照 */
+  transform:translateZ(0);
+  display:flex; flex-direction:column;
+}
+.hint{ display:none; }
+
+@media (min-width:600px) and (min-height:700px){
+  .device{ padding:12px 12px 12px; flex-direction:column; gap:8px; }
+  .frame{
+    width:390px; height:min(844px, calc(100vh - 46px));
+    border-radius:46px;
+    box-shadow:
+      0 0 0 10px #10221A,
+      0 0 0 12px #2C3B33,
+      0 34px 70px -18px rgba(16,34,26,.55),
+      0 10px 28px rgba(16,34,26,.22);
+    flex:none;
+  }
+  .frame::before{           /* 刘海 */
+    content:""; position:absolute; z-index:60; top:9px; left:50%;
+    transform:translateX(-50%);
+    width:112px; height:26px; border-radius:0 0 16px 16px;
+    background:#10221A;
+  }
+  .hint{
+    display:flex; align-items:center; gap:8px;
+    font-size:12px; color:#6C7C72; letter-spacing:.3px;
+    user-select:none;
+  }
+  .hint-dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--green); box-shadow:0 0 0 4px rgba(39,167,107,.16);
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+}
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
+
+/* 窗口不够高时优先保证手机屏幕完整显示：隐藏下方提示 */
+@media (max-height:940px){
+  .hint{ display:none !important; }
+}
+
+/* ============================ 应用容器 ============================ */
+
+.app{
+  position:relative;
+  display:flex; flex-direction:column;
+  width:100%; height:100%;
+  background:var(--bg);
+  overflow:hidden;
+  font-size:calc(var(--fs-body) * var(--zoom));
+}
+.app.big{ --zoom:1.13; }
+
+.screen{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  background:var(--bg);
+  animation:screenIn .26s cubic-bezier(.2,.8,.3,1) both;
+}
+.screen.back-anim{ animation:screenBack .24s cubic-bezier(.2,.8,.3,1) both; }
+@keyframes screenIn{ from{ opacity:0; transform:translateX(16px) } to{ opacity:1; transform:none } }
+@keyframes screenBack{ from{ opacity:0; transform:translateX(-14px) } to{ opacity:1; transform:none } }
+
+.body{
+  flex:1 1 auto; min-height:0;
+  overflow-y:auto; overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.body::-webkit-scrollbar{ width:0; height:0; }
+
+.safe-b{ padding-bottom:8px; }
+
+/* ============================ 状态栏 ============================ */
+
+.statusbar{
+  flex:none; height:40px;
+  display:flex; align-items:flex-end; justify-content:space-between;
+  padding:0 22px 6px; font-size:14px; font-weight:600;
+  color:var(--ink); letter-spacing:.2px;
+  position:relative; z-index:5;
+}
+.statusbar .sb-clock{ font-family:var(--font-num); font-variant-numeric:tabular-nums; }
+.statusbar .sb-right{ display:flex; align-items:center; gap:5px; }
+.statusbar svg{ display:block; }
+.sb-batt{ width:22px; height:11px; position:relative; }
+.sb-batt i{
+  position:absolute; inset:0; border:1.4px solid currentColor; border-radius:2.6px;
+  opacity:.45;
+}
+.sb-batt i::after{ content:""; position:absolute; right:-3.2px; top:3px; width:1.8px; height:5px; border-radius:0 1px 1px 0; background:currentColor; }
+.sb-batt b{ position:absolute; left:1.6px; top:1.6px; bottom:1.6px; width:13px; border-radius:1.2px; background:var(--green); display:block; }
+
+@media (min-width:600px) and (min-height:700px){
+  .statusbar{ height:52px; padding:0 26px 4px; }
+}
+
+/* ============================ 顶部栏（子页） ============================ */
+
+.topbar{
+  flex:none;
+  display:flex; align-items:center; gap:10px;
+  padding:2px var(--pad) 10px;
+  min-height:44px;
+  background:var(--bg);
+  position:sticky; top:0; z-index:12;
+}
+.topbar .tb-title{
+  font-size:16px; font-weight:700; letter-spacing:.3px; color:var(--ink);
+  flex:1; text-align:center; padding-right:0;
+}
+.topbar .tb-title.no-back{ padding-right:0; text-align:left; }
+
+/* 返回上一级：带文字的胶囊，老人一眼能认出来 */
+.backpill{
+  display:inline-flex; align-items:center; gap:1px;
+  height:32px; padding:0 11px 0 5px; flex:none;
+  border-radius:16px;
+  background:rgba(28,107,76,.085);
+  color:var(--deep);
+  font-size:12px; font-weight:700; letter-spacing:.4px;
+  transition:transform .12s ease, background .16s;
+}
+.backpill:active{ transform:scale(.95); background:rgba(28,107,76,.16); }
+.backpill svg{ display:block; }
+.back-spacer{ width:64px; flex:none; }
+.iconbtn{
+  width:32px; height:32px; flex:none;
+  display:grid; place-items:center;
+  border-radius:50%;
+  color:var(--deep);
+  background:transparent;
+  transition:background .16s;
+}
+.iconbtn:active{ background:rgba(28,107,76,.08); }
+.iconbtn svg{ display:block; }
+
+/* ============================ 品牌头 ============================ */
+
+.brandrow{
+  display:flex; align-items:center;
+  padding:2px var(--pad) 0;
+  height:44px;
+}
+.wordmark{
+  font-size:25px; line-height:1;
+  font-weight:900; letter-spacing:1px;
+  color:var(--deep);
+  position:relative;
+}
+.brand-tag{
+  font-size:11px; color:var(--muted); letter-spacing:1.4px;
+  margin-left:14px; margin-top:5px;
+}
+.brandrow .grow{ flex:1; }
+.bell{
+  position:relative; width:34px; height:34px; border-radius:50%;
+  background:var(--mint);
+  display:grid; place-items:center;
+  color:var(--deep);
+}
+.bell .dot{
+  position:absolute; top:-1px; right:-1px;
+  width:9px; height:9px; border-radius:50%;
+  background:var(--red);
+  box-shadow:0 0 0 2px var(--bg);
+}
+.bell-bar{
+  position:absolute; left:-4px; right:-4px; bottom:-7px; height:3px;
+  border-radius:2px; background:var(--green-2); opacity:.85;
+}
+
+/* ============================ 通用元件 ============================ */
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  height:44px; padding:0 20px;
+  border-radius:14px;
+  background:var(--green); color:#fff;
+  font-size:14px; font-weight:700; letter-spacing:.4px;
+  transition:transform .12s ease, filter .16s ease, box-shadow .16s;
+  box-shadow:0 6px 16px -6px rgba(39,167,107,.7);
+}
+.btn:active{ transform:scale(.975); filter:brightness(.96); }
+.btn.block{ display:flex; width:100%; }
+.btn.ghost{
+  background:transparent; color:var(--deep);
+  box-shadow:none; border:1.4px solid rgba(28,107,76,.22);
+}
+.btn.soft{ background:var(--mint); color:var(--deep); box-shadow:none; }
+.btn.ghost:active{ background:rgba(28,107,76,.06); }
+.btn.sm{ height:34px; padding:0 14px; font-size:12.5px; border-radius:11px; }
+.btn:disabled{ opacity:.42; filter:grayscale(.3); box-shadow:none; pointer-events:none; }
+.btn .arw{ opacity:.75; }
+
+.card{
+  background:var(--paper);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+}
+.card.pad{ padding:16px; }
+
+.sec-title{
+  display:flex; align-items:baseline; justify-content:space-between;
+  padding:0 var(--pad);
+  margin:12px 0 8px;
+}
+.sec-title h2{
+  font-size:15px; font-weight:800; letter-spacing:.6px; color:var(--ink); line-height:1.15;
+}
+.sec-title .more{
+  font-size:11px; color:var(--muted); display:flex; align-items:center; gap:3px;
+}
+.sec-title .more:active{ color:var(--deep); }
+
+.chip{
+  display:inline-flex; align-items:center; gap:5px;
+  height:24px; padding:0 10px; border-radius:8px;
+  background:var(--mint); color:var(--deep);
+  font-size:11px; font-weight:600; letter-spacing:.3px;
+  white-space:nowrap;
+}
+.chip.line{ background:transparent; border:1px solid rgba(28,107,76,.2); }
+.chip.orange{ background:rgba(255,138,61,.13); color:#C2601F; }
+.chip.grey{ background:#EEF3EF; color:var(--muted); }
+.chip.red{ background:rgba(229,99,91,.13); color:#B8403A; }
+.chip.blue{ background:rgba(60,127,176,.12); color:#2C6491; }
+
+.dot-sep{ color:var(--muted); opacity:.55; margin:0 6px; }
+
+.tiny{ font-size:10.5px; color:var(--muted); letter-spacing:.2px; }
+.num{ font-family:var(--font-num); font-variant-numeric:tabular-nums; }
+.money{ font-family:var(--font-num); font-variant-numeric:tabular-nums; font-weight:800; }
+.money .u{ font-size:.72em; margin-right:1px; font-weight:700; }
+.price-now{ color:var(--orange); }
+.price-old{ color:var(--muted); text-decoration:line-through; font-size:11px; }
+
+.rowline{ height:1px; background:var(--line); margin:14px 0; border:0; }
+
+.empty{
+  padding:60px 20px; text-align:center; color:var(--muted); font-size:12.5px;
+}
+.empty .e-ico{ font-size:34px; opacity:.5; margin-bottom:10px; }
+
+/* 骨架/加载 */
+.spinner{
+  width:18px; height:18px; border-radius:50%;
+  border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg) } }
+
+/* ============================ 底部导航 ============================ */
+
+.tabbar{
+  flex:none; height:var(--nav-h);
+  background:#fff;
+  border-top:1px solid rgba(28,107,76,.07);
+  display:grid; grid-template-columns:repeat(4,1fr);
+  padding-bottom:env(safe-area-inset-bottom,0);
+  z-index:20;
+}
+.tabbar .tab{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  color:var(--muted); position:relative;
+  padding-top:2px;
+}
+.tabbar .tab .tlabel{ font-size:11px; letter-spacing:.6px; }
+.tabbar .tab svg{ display:block; }
+.tabbar .tab.on{ color:var(--deep); font-weight:700; }
+.tabbar .tab.on .tlabel{ font-weight:700; }
+.tabbar .tab .badge{
+  position:absolute; top:6px; left:calc(50% + 6px);
+  min-width:15px; height:15px; padding:0 4px;
+  border-radius:8px; background:var(--red); color:#fff;
+  font-size:9.5px; font-weight:700; line-height:15px; text-align:center;
+  font-family:var(--font-num);
+}
+
+/* ============================ 浮层 ============================ */
+
+.sheet-wrap{
+  position:absolute; inset:0; z-index:80;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  background:rgba(18,38,29,.34);
+  backdrop-filter:blur(2px);
+  animation:fadeIn .2s ease both;
+}
+@keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+.sheet{
+  background:var(--paper);
+  border-radius:24px 24px 0 0;
+  max-height:86%;
+  display:flex; flex-direction:column;
+  animation:sheetUp .3s cubic-bezier(.2,.85,.3,1) both;
+  box-shadow:0 -12px 40px rgba(16,34,26,.18);
+}
+@keyframes sheetUp{ from{ transform:translateY(100%) } to{ transform:none } }
+.sheet-head{
+  flex:none; display:flex; align-items:center; gap:8px;
+  padding:16px 20px 10px;
+}
+.sheet-head h3{ font-size:15px; font-weight:800; flex:1; letter-spacing:.4px; }
+.sheet-head .x{ width:28px; height:28px; display:grid; place-items:center; border-radius:50%; color:var(--muted); background:#F1F5F2; }
+.sheet-body{ padding:2px 20px 12px; overflow-y:auto; }
+.sheet-foot{ padding:10px 20px calc(16px + env(safe-area-inset-bottom,0)); border-top:1px solid var(--line); background:#fff; }
+
+.modal-wrap{
+  position:absolute; inset:0; z-index:90;
+  display:grid; place-items:center; padding:26px;
+  background:rgba(18,38,29,.4);
+  animation:fadeIn .18s ease both;
+}
+.modal{
+  width:100%; background:#fff; border-radius:20px; padding:20px;
+  box-shadow:var(--shadow-2);
+  animation:pop .24s cubic-bezier(.2,.9,.3,1) both;
+}
+@keyframes pop{ from{ transform:scale(.94); opacity:0 } to{ transform:none; opacity:1 } }
+.modal h3{ font-size:15.5px; font-weight:800; margin-bottom:8px; }
+.modal p{ font-size:12.5px; color:var(--muted); line-height:1.75; }
+.modal .m-actions{ display:flex; gap:10px; margin-top:18px; }
+.modal .m-actions .btn{ flex:1; height:42px; font-size:13.5px; }
+
+.toast{
+  position:absolute; left:50%; bottom:96px; transform:translateX(-50%);
+  background:rgba(22,42,32,.93); color:#fff;
+  padding:10px 16px; border-radius:12px;
+  font-size:12.5px; letter-spacing:.3px; line-height:1.5;
+  max-width:78%; text-align:center;
+  z-index:120; pointer-events:none;
+  animation:toastIn .24s cubic-bezier(.2,.9,.3,1) both;
+  box-shadow:0 10px 26px rgba(0,0,0,.22);
+  display:flex; align-items:center; gap:8px;
+}
+.toast.out{ animation:toastOut .26s ease both; }
+@keyframes toastIn{ from{ opacity:0; transform:translate(-50%,10px) } to{ opacity:1; transform:translate(-50%,0) } }
+@keyframes toastOut{ to{ opacity:0; transform:translate(-50%,8px) } }
+.toast .t-ico{ width:16px; height:16px; flex:none; }
+
+/* ============================ 启动画面 ============================ */
+
+.splash{
+  position:fixed; inset:0; z-index:999;
+  display:grid; place-items:center;
+  background:
+    radial-gradient(80% 60% at 50% 22%, #2FAE72 0%, #27A76B 42%, #1C6B4C 100%);
+  transition:opacity .5s ease, visibility .5s;
+}
+.splash.gone{ opacity:0; visibility:hidden; }
+.splash-inner{ text-align:center; color:#fff; transform:translateY(-6px); }
+.splash-logo{
+  font-size:62px; font-weight:900; letter-spacing:6px; line-height:1;
+  text-shadow:0 12px 30px rgba(0,0,0,.16);
+  animation:splashIn .8s cubic-bezier(.16,.9,.3,1) both;
+}
+.splash-tag{
+  margin-top:16px; font-size:13px; letter-spacing:5px; opacity:.92;
+  animation:splashIn .8s .1s cubic-bezier(.16,.9,.3,1) both;
+}
+.splash-line{
+  width:44px; height:2px; border-radius:2px; background:rgba(255,255,255,.55);
+  margin:22px auto;
+  animation:splashIn .8s .18s cubic-bezier(.16,.9,.3,1) both;
+}
+.splash-sub{
+  font-size:11.5px; letter-spacing:3px; opacity:.72;
+  animation:splashIn .8s .26s cubic-bezier(.16,.9,.3,1) both;
+}
+.splash-load{
+  width:120px; height:2px; border-radius:2px; background:rgba(255,255,255,.22);
+  margin:34px auto 0; overflow:hidden;
+}
+.splash-load i{
+  display:block; width:40%; height:100%; border-radius:2px; background:#fff;
+  animation:loadbar 1.15s cubic-bezier(.5,0,.3,1) infinite;
+}
+@keyframes loadbar{ 0%{ transform:translateX(-100%) } 100%{ transform:translateX(280%) } }
+@keyframes splashIn{ from{ opacity:0; transform:translateY(14px) } to{ opacity:1; transform:none } }
+
+/* ============================ 装饰形状 ============================ */
+
+.blob-btn{ position:relative; display:inline-grid; place-items:center; }
+.blob-btn .bshape{ position:absolute; inset:0; }
+.blob-btn .btxt{
+  position:relative; z-index:2;
+  font-size:12px; font-weight:700; letter-spacing:1px; color:#08231A;
+}
+.blob-btn:active .bshape{ filter:brightness(.93); }
+
+.wave-band{ position:relative; overflow:hidden; }
+.wave-band svg{ position:absolute; inset:0; width:100%; height:100%; }
+
+/* 滚动条隐藏 */
+.no-sb{ scrollbar-width:none; }
+.no-sb::-webkit-scrollbar{ display:none; }
+
+/* 通用文字 */
+.h1{ font-size:20px; font-weight:800; letter-spacing:.5px; }
+.h2{ font-size:16px; font-weight:800; letter-spacing:.4px; }
+.h3{ font-size:14px; font-weight:700; letter-spacing:.3px; }
+.p{ font-size:12.5px; line-height:1.85; color:var(--ink); }
+.muted{ color:var(--muted); }
+.wht{ color:#fff; }
+.center{ text-align:center; }
+.mt8{ margin-top:8px } .mt12{ margin-top:12px } .mt16{ margin-top:16px } .mt20{ margin-top:20px }
+.mb8{ margin-bottom:8px } .mb12{ margin-bottom:12px }
+.flex{ display:flex } .aic{ align-items:center } .jcb{ justify-content:space-between } .gap6{ gap:6px } .gap8{ gap:8px } .gap10{ gap:10px } .gap12{ gap:12px }
+.grow{ flex:1 }
+
+/* 表单 */
+.field{ margin-bottom:14px; }
+.field > label{
+  display:block; font-size:12px; font-weight:700; color:var(--ink);
+  margin-bottom:7px; letter-spacing:.4px;
+}
+.field .hintline{ font-size:10.5px; color:var(--muted); margin-top:6px; line-height:1.6; }
+.input{
+  width:100%; height:42px; padding:0 13px;
+  border-radius:12px; border:1.4px solid var(--line);
+  background:#fff; font-size:13px; color:var(--ink);
+  transition:border-color .16s, box-shadow .16s;
+}
+.input:focus{ outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(39,167,107,.13); }
+textarea.input{ height:auto; padding:11px 13px; line-height:1.7; resize:none; }
+
+.seg{
+  display:flex; gap:6px; background:#EDF3EE; padding:3px; border-radius:11px;
+}
+.seg button{
+  flex:1; height:30px; border-radius:8px; font-size:11.5px; font-weight:600; color:var(--muted);
+  transition:all .18s;
+}
+.seg button.on{ background:#fff; color:var(--deep); box-shadow:0 2px 6px rgba(28,107,76,.1); font-weight:700; }
+
+.opt-row{ display:flex; flex-wrap:wrap; gap:7px; }
+.opt{
+  height:32px; padding:0 13px; border-radius:10px;
+  border:1.4px solid var(--line); background:#fff;
+  font-size:12px; color:var(--ink); font-weight:500;
+  display:inline-flex; align-items:center; gap:5px;
+  transition:all .16s;
+}
+.opt.on{
+  border-color:var(--green); background:rgba(39,167,107,.08);
+  color:var(--deep); font-weight:700;
+}
+.opt.on::before{ content:"✓"; font-size:11px; }
+
+.switch{
+  width:38px; height:22px; border-radius:11px; background:#DDE6E0; position:relative;
+  transition:background .2s; flex:none;
+}
+.switch::after{
+  content:""; position:absolute; top:2px; left:2px; width:18px; height:18px;
+  border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.16);
+  transition:transform .2s cubic-bezier(.3,1.3,.5,1);
+}
+.switch.on{ background:var(--green); }
+.switch.on::after{ transform:translateX(16px); }
+</style>
+<style>
+/* ==== assets/app.css ==== */
+/* ==========================================================================
+   食刻 · 暖食一刻  |  app.css
+   ========================================================================== */
+
+/* ============================ 首页 ============================ */
+
+.home{ padding-bottom:10px; }
+
+/* —— 问候横幅 —— */
+.greet{
+  position:relative;
+  margin:0 var(--pad);
+  height:110px;
+}
+.greet-art{
+  position:absolute; left:-10px; top:-40px;
+  width:353px; height:160px;
+  overflow:visible;
+  pointer-events:none;
+  z-index:0;
+}
+.greet-art svg{ display:block; width:100%; height:100%; overflow:visible; }
+.greet-hit{
+  position:absolute; right:0; top:12px; width:96px; height:52px;
+  z-index:3; border-radius:26px;
+}
+.greet-txt{ position:relative; z-index:2; padding:0 0 0 17px; }
+.greet-hi{
+  padding-top:25px;
+  font-size:17.5px; font-weight:600; color:#fff; letter-spacing:.4px;
+  line-height:1.2;
+  display:flex; align-items:baseline;
+}
+.greet-hi .gap{ display:inline-block; width:11px; }
+.greet-sub{
+  margin-top:7px;
+  font-size:11.5px; color:#fff; letter-spacing:.2px; opacity:.97;
+  display:flex; align-items:center; gap:5px;
+}
+.greet-sub .amt{
+  font-family:var(--font-num); font-weight:700; font-size:12.5px;
+  letter-spacing:.3px;
+}
+.greet-street{
+  position:absolute; left:17px; bottom:16px; z-index:2;
+  font-size:10.5px; color:var(--mint-3); letter-spacing:.6px;
+  display:flex; align-items:center; gap:5px;
+}
+.greet-street::before{
+  content:""; width:11px; height:11px; flex:none;
+  background:currentColor; opacity:.75;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.greet-cta{
+  position:absolute; left:245px; top:26px; z-index:4;
+  width:88px; height:29px;
+  display:grid; place-items:center;
+  font-size:12.5px; font-weight:700; color:#08231A; letter-spacing:.8px;
+}
+.greet-cta svg{ position:absolute; inset:0; width:100%; height:100%; }
+.greet-cta span{ position:relative; z-index:2; }
+.greet-cta:active svg{ filter:brightness(.96); }
+
+/* —— 进行中的订单 —— */
+.ordercard{
+  position:relative;
+  margin:16px var(--pad) 0;
+  background:var(--card-2);
+  border-radius:16px;
+  padding:15px 18px 12px;
+  box-shadow:0 1px 0 rgba(28,107,76,.04);
+  overflow:hidden;
+}
+.ordercard::after{
+  content:""; position:absolute; right:-40px; top:-46px;
+  width:110px; height:110px; border-radius:50%;
+  background:radial-gradient(circle, rgba(173,226,201,.22), rgba(173,226,201,0) 70%);
+  pointer-events:none;
+}
+.oc-head{ display:flex; align-items:center; gap:8px; }
+.oc-head h3{
+  font-size:13px; font-weight:700; color:var(--deep); letter-spacing:.4px; flex:1;
+}
+.oc-status{
+  height:22px; padding:0 9px; border-radius:7px;
+  background:var(--mint);
+  color:var(--deep); font-size:10.5px; font-weight:700; letter-spacing:.3px;
+  display:inline-flex; align-items:center; gap:4px;
+}
+.oc-status .pulse{
+  width:5px; height:5px; border-radius:50%; background:var(--green);
+  box-shadow:0 0 0 0 rgba(39,167,107,.6); animation:ring 1.8s infinite;
+}
+@keyframes ring{ 70%{ box-shadow:0 0 0 6px rgba(39,167,107,0) } 100%{ box-shadow:0 0 0 0 rgba(39,167,107,0) } }
+.oc-name{
+  margin-top:7px; font-size:15.5px; font-weight:700; color:var(--ink); letter-spacing:.2px;
+  line-height:1.35; padding-right:8px;
+}
+.oc-tags{ margin-top:4px; font-size:10.5px; color:var(--muted); letter-spacing:.4px; }
+.oc-eta{
+  margin-top:9px; font-size:12.5px; color:var(--ink);
+  display:flex; align-items:baseline; gap:8px; letter-spacing:.3px;
+}
+.oc-eta b{ font-family:var(--font-num); font-size:14px; font-weight:800; letter-spacing:.4px; }
+.oc-eta .lb{ color:var(--ink); font-weight:600; }
+.oc-chips{ display:flex; gap:8px; margin-top:11px; }
+.oc-chip{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  height:24px; font-size:10.5px; color:var(--deep); font-weight:600; letter-spacing:.3px;
+  position:relative;
+}
+.oc-chip::before{
+  content:""; position:absolute; left:2px; top:-7px;
+  width:17px; height:9px; border-radius:9px 9px 0 0;
+  background:var(--mint); opacity:.85;
+}
+.oc-chip::after{
+  content:""; position:absolute; right:-2px; bottom:-7px;
+  width:27px; height:13px; border-radius:0 0 13px 13px;
+  background:var(--mint); opacity:.85;
+}
+.oc-chip span{ position:relative; z-index:2; }
+.oc-prog{
+  position:absolute; left:0; right:0; bottom:0; height:3px;
+  background:rgba(28,107,76,.07); overflow:hidden;
+}
+.oc-prog i{
+  display:block; height:100%; border-radius:2px;
+  background:linear-gradient(90deg,var(--green) 0%, #45C08A 100%);
+  transition:width .8s cubic-bezier(.3,1,.4,1);
+}
+
+/* —— 快捷服务 —— */
+.quick{ display:grid; grid-template-columns:repeat(4,1fr); gap:5px; padding:0 var(--pad); }
+.qitem{
+  background:#FCFDFC;
+  border-radius:13px;
+  height:61px;
+  padding:9px 2px 0;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  box-shadow:0 2px 8px rgba(28,107,76,.05), inset 0 0 0 1px rgba(28,107,76,.045);
+  transition:transform .14s ease, box-shadow .16s;
+}
+.qitem:active{ transform:translateY(1px) scale(.985); box-shadow:0 1px 4px rgba(28,107,76,.07); }
+.qico{
+  width:26px; height:26px; border-radius:50%; background:var(--mint);
+  display:grid; place-items:center;
+  font-size:14px; font-weight:800; color:var(--deep); line-height:1;
+  letter-spacing:0;
+}
+.qico.warm{ background:rgba(255,138,61,.14); color:#C2601F; }
+.qlabel{ font-size:10.5px; color:var(--ink); letter-spacing:.1px; white-space:nowrap; }
+
+/* —— 今日补贴套餐 —— */
+.meal{
+  position:relative;
+  margin:0 var(--pad) 7px;
+  background:var(--card);
+  border-radius:14px;
+  padding:9px 14px 6px;
+  min-height:58px;
+  display:flex; align-items:center; gap:8px;
+  box-shadow:inset 0 0 0 1px rgba(28,107,76,.045);
+  transition:background .16s;
+}
+.meal:active{ background:#EFF4F0; }
+.meal-main{ flex:1; min-width:0; }
+.meal-name{
+  font-size:15px; font-weight:700; color:var(--ink); letter-spacing:.2px;
+  line-height:1.15;
+}
+.meal-price{
+  margin-top:3px; display:flex; align-items:baseline; gap:9px; line-height:1;
+}
+.meal-now{ font-size:12px; color:var(--orange); font-weight:700; letter-spacing:.2px; }
+.meal-now b{ font-family:var(--font-num); font-size:16px; font-weight:800; margin-left:2px; letter-spacing:0; }
+.meal-old{ font-size:10.5px; color:var(--muted); letter-spacing:.2px; }
+.meal-old i{ font-style:normal; text-decoration:line-through; }
+.meal-tag{ margin-top:2px; font-size:10.5px; color:var(--muted); letter-spacing:.3px; line-height:1.2; }
+.meal-buy{
+  position:relative; width:46px; height:26px; flex:none;
+  display:grid; place-items:center;
+}
+.meal-buy i{
+  position:absolute; left:5px; top:9px; width:34px; height:13px;
+  border-radius:7px; background:var(--green); transform:rotate(-7deg);
+}
+.meal-buy::before{
+  content:""; position:absolute; left:1px; top:1px;
+  width:24px; height:24px; border-radius:50%; background:var(--green);
+}
+.meal-buy::after{
+  content:""; position:absolute; right:1px; bottom:0;
+  width:21px; height:21px; border-radius:50%; background:var(--green);
+}
+.meal-buy span{ position:relative; z-index:2; font-size:12px; font-weight:700; color:#06231A; letter-spacing:1.2px; }
+.meal-buy:active::before, .meal-buy:active::after, .meal-buy:active i{ filter:brightness(.93); }
+.meal-note{
+  padding:0 var(--pad); margin:0 0 6px; line-height:1.3;
+  font-size:10.5px; color:var(--muted); letter-spacing:.2px;
+}
+
+/* —— 服务承诺 —— */
+.promise{
+  position:relative; margin:11px var(--pad) 0; height:29px;
+  display:flex; align-items:center; justify-content:center;
+}
+.promise svg{ position:absolute; inset:0; width:100%; height:100%; }
+.promise span{
+  position:relative; z-index:2;
+  font-size:10.5px; color:var(--deep); letter-spacing:.5px; font-weight:600;
+}
+.promise .sep{ opacity:.45; margin:0 5px; font-weight:400; }
+
+/* ============================ 菜单 / 点单 ============================ */
+
+.hr-scroll{ display:flex; gap:7px; padding:0 var(--pad) 2px; overflow-x:auto; }
+.hr-scroll::-webkit-scrollbar{ display:none; }
+
+.meallist{ padding:2px var(--pad) 0; }
+.mcard{
+  background:#fff; border-radius:16px; padding:14px 15px;
+  margin-bottom:10px;
+  box-shadow:0 3px 14px rgba(28,107,76,.055);
+  display:flex; gap:12px; align-items:flex-start;
+  transition:box-shadow .16s, transform .12s;
+}
+.mcard:active{ transform:scale(.995); }
+.mcard.pick{ box-shadow:0 0 0 1.6px var(--green), 0 6px 18px rgba(39,167,107,.16); }
+.mthumb{
+  width:56px; height:56px; border-radius:13px; flex:none;
+  background:linear-gradient(150deg,#E7F5EC,#D6EEE0);
+  display:grid; place-items:center;
+  font-size:22px;
+  position:relative; overflow:hidden;
+}
+.mthumb::after{
+  content:""; position:absolute; right:-12px; bottom:-12px; width:34px; height:34px;
+  border-radius:50%; background:rgba(39,167,107,.16);
+}
+.mcard-main{ flex:1; min-width:0; }
+.mcard-name{ font-size:14.5px; font-weight:700; letter-spacing:.2px; display:flex; align-items:center; gap:6px; }
+.mcard-desc{ margin-top:4px; font-size:10.5px; color:var(--muted); line-height:1.55; }
+.mcard-foot{ display:flex; align-items:center; gap:8px; margin-top:8px; }
+.mcard-foot .money{ font-size:17px; color:var(--orange); }
+.mcard-foot .old{ font-size:10.5px; color:var(--muted); text-decoration:line-through; }
+.mcard-foot .gap{ flex:1; }
+
+/* 详情页 */
+.detail-hero{
+  margin:0 var(--pad); border-radius:20px; overflow:hidden; position:relative;
+  background:linear-gradient(155deg,#E9F7EF 0%,#D3EDE0 60%,#C4E7D6 100%);
+  padding:20px 18px 18px;
+}
+.detail-hero .dh-badge{
+  display:inline-flex; align-items:center; gap:5px; height:23px; padding:0 9px;
+  border-radius:8px; background:rgba(255,255,255,.72); color:var(--deep);
+  font-size:10.5px; font-weight:700; letter-spacing:.4px;
+}
+.detail-hero h2{ margin-top:11px; font-size:21px; font-weight:800; letter-spacing:.4px; }
+.detail-hero .dh-sub{ margin-top:6px; font-size:11.5px; color:#4E6F5D; letter-spacing:.3px; }
+.detail-hero .dh-art{ position:absolute; right:-18px; top:-14px; width:118px; height:118px; opacity:.55; }
+.detail-price{
+  margin-top:14px; display:flex; align-items:baseline; gap:9px; position:relative; z-index:2;
+}
+.detail-price .money{ font-size:27px; color:var(--orange); letter-spacing:-.5px; }
+.detail-price .old{ font-size:12px; color:#5E7A6B; text-decoration:line-through; }
+.detail-price .save{
+  font-size:10px; font-weight:700; color:#B4551C; background:rgba(255,138,61,.18);
+  padding:2px 6px; border-radius:6px; letter-spacing:.3px;
+}
+
+.panel{
+  margin:12px var(--pad) 0; background:#fff; border-radius:16px; padding:15px;
+  box-shadow:0 3px 14px rgba(28,107,76,.05);
+}
+.panel-h{
+  display:flex; align-items:center; gap:7px; margin-bottom:12px;
+  font-size:12.5px; font-weight:800; letter-spacing:.4px;
+}
+.panel-h .ph-dot{ width:5px; height:5px; border-radius:2px; background:var(--green); transform:rotate(45deg); }
+.panel-h .ph-r{ margin-left:auto; font-size:10.5px; font-weight:500; color:var(--muted); }
+
+.opt2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.opt2 .opt{ height:38px; justify-content:center; font-size:12px; }
+
+.stepper{ display:flex; align-items:center; gap:12px; }
+.stepper button{
+  width:28px; height:28px; border-radius:9px; background:var(--mint);
+  color:var(--deep); font-size:16px; font-weight:700; display:grid; place-items:center; line-height:1;
+}
+.stepper button:disabled{ opacity:.35; }
+.stepper .n{ font-family:var(--font-num); font-size:16px; font-weight:800; min-width:20px; text-align:center; }
+
+/* 地址校验 */
+.addr{
+  display:flex; gap:11px; align-items:flex-start;
+  padding:11px 12px; border-radius:12px; background:#F6FAF7;
+  border:1px solid rgba(28,107,76,.07);
+}
+.addr .a-ico{ width:28px; height:28px; border-radius:9px; background:var(--mint); display:grid; place-items:center; color:var(--deep); flex:none; }
+.addr .a-main{ flex:1; min-width:0; }
+.addr .a-name{ font-size:12px; font-weight:700; }
+.addr .a-detail{ font-size:10.5px; color:var(--muted); margin-top:3px; line-height:1.5; }
+.addr .a-check{ margin-top:7px; display:flex; flex-wrap:wrap; gap:5px; }
+
+/* 结算条 */
+.paybar{
+  flex:none; background:#fff; border-top:1px solid var(--line);
+  padding:10px var(--pad) calc(12px + env(safe-area-inset-bottom,0));
+  display:flex; align-items:center; gap:12px;
+  box-shadow:0 -6px 20px rgba(28,107,76,.05);
+}
+.paybar .pb-l{ flex:1; min-width:0; }
+.paybar .pb-label{ font-size:10px; color:var(--muted); letter-spacing:.3px; }
+.paybar .pb-amt{ display:flex; align-items:baseline; gap:3px; }
+.paybar .pb-amt .money{ font-size:21px; color:var(--orange); letter-spacing:-.4px; }
+.paybar .pb-save{ font-size:10px; color:var(--muted); margin-top:2px; letter-spacing:.2px; }
+.paybar .btn{ min-width:120px; height:45px; }
+
+/* ============================ 支付 ============================ */
+
+.pay-hero{
+  margin:6px var(--pad) 0; text-align:center;
+  padding:20px 16px 18px;
+  border-radius:20px;
+  background:linear-gradient(160deg,#F0FAF4,#DDF2E6);
+  position:relative; overflow:hidden;
+}
+.pay-hero .ph-amt{ font-family:var(--font-num); font-size:38px; font-weight:800; color:var(--deep); letter-spacing:-1px; line-height:1; }
+.pay-hero .ph-lb{ font-size:11px; color:#5F8070; margin-top:8px; letter-spacing:.4px; }
+.pay-hero .ph-chip{ display:inline-flex; margin-top:10px; }
+
+.payrow{
+  display:flex; align-items:center; gap:10px; padding:12px 0;
+  border-bottom:1px dashed rgba(28,107,76,.12);
+  font-size:12px;
+}
+.payrow:last-child{ border-bottom:0; }
+.payrow .p-l{ color:var(--ink); flex:1; }
+.payrow .p-r{ font-family:var(--font-num); font-weight:700; }
+.payrow.minus .p-r{ color:var(--green); }
+.payrow.total .p-l{ font-weight:800; }
+.payrow.total .p-r{ font-size:16px; color:var(--orange); }
+
+.paymeth{
+  display:flex; align-items:center; gap:11px;
+  padding:13px 12px; border-radius:13px; border:1.4px solid var(--line);
+  margin-bottom:9px; background:#fff; transition:all .16s;
+}
+.paymeth.on{ border-color:var(--green); background:rgba(39,167,107,.045); }
+.paymeth .pm-ico{ width:30px; height:30px; border-radius:9px; display:grid; place-items:center; font-size:15px; background:var(--mint); }
+.paymeth .pm-name{ flex:1; font-size:12.5px; font-weight:600; }
+.paymeth .pm-sub{ display:block; font-size:10px; color:var(--muted); margin-top:3px; font-weight:400; }
+.paymeth .radio{
+  width:18px; height:18px; border-radius:50%; border:1.6px solid #CBD9D0; flex:none; position:relative;
+}
+.paymeth.on .radio{ border-color:var(--green); }
+.paymeth.on .radio::after{
+  content:""; position:absolute; inset:3px; border-radius:50%; background:var(--green);
+}
+
+/* ============================ 订单追踪 ============================ */
+
+.track-hero{
+  margin:0 var(--pad); border-radius:20px; padding:18px;
+  background:linear-gradient(158deg,#2BB477 0%,#27A76B 46%,#1C6B4C 100%);
+  color:#fff; position:relative; overflow:hidden;
+}
+.track-hero::after{
+  content:""; position:absolute; right:-46px; top:-46px; width:150px; height:150px;
+  border-radius:50%; background:rgba(255,255,255,.09);
+}
+.track-hero .th-status{ font-size:11px; opacity:.86; letter-spacing:1.2px; }
+.track-hero .th-eta{ margin-top:7px; font-size:22px; font-weight:800; letter-spacing:.2px; font-family:var(--font-num); }
+.track-hero .th-eta small{ font-size:11px; font-family:var(--font); font-weight:600; opacity:.85; letter-spacing:.6px; margin-left:6px; }
+.track-hero .th-note{ margin-top:6px; font-size:11px; opacity:.9; letter-spacing:.3px; }
+.track-hero .th-metrics{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:15px; position:relative; z-index:2;
+}
+.thm{
+  background:rgba(255,255,255,.15); border-radius:11px; padding:8px 9px;
+  backdrop-filter:blur(2px);
+}
+.thm .v{ font-size:14px; font-weight:800; font-family:var(--font-num); letter-spacing:.2px; }
+.thm .k{ font-size:9.5px; opacity:.8; margin-top:2px; letter-spacing:.3px; }
+
+.tl{ padding:4px 0 0; }
+.tl-item{ display:flex; gap:12px; position:relative; padding-bottom:18px; }
+.tl-item:last-child{ padding-bottom:0; }
+.tl-item .tl-rail{ width:18px; flex:none; display:flex; flex-direction:column; align-items:center; }
+.tl-item .tl-dot{
+  width:11px; height:11px; border-radius:50%; background:#DDE8E1; margin-top:3px;
+  box-shadow:0 0 0 3px #fff; flex:none;
+}
+.tl-item.done .tl-dot{ background:var(--green); }
+.tl-item.now .tl-dot{
+  background:var(--green); box-shadow:0 0 0 3px #fff, 0 0 0 7px rgba(39,167,107,.16);
+  animation:ring2 1.8s infinite;
+}
+@keyframes ring2{ 0%,100%{ box-shadow:0 0 0 3px #fff, 0 0 0 5px rgba(39,167,107,.18) } 50%{ box-shadow:0 0 0 3px #fff, 0 0 0 9px rgba(39,167,107,.05) } }
+.tl-item .tl-line{ flex:1; width:1.5px; background:#E3EDE7; margin-top:4px; }
+.tl-item.done .tl-line{ background:var(--green-2); opacity:.5; }
+.tl-item .tl-body{ flex:1; padding-bottom:2px; }
+.tl-item .tl-t{ font-size:12.5px; font-weight:700; display:flex; align-items:baseline; gap:7px; }
+.tl-item .tl-t .tm{ font-size:10px; color:var(--muted); font-family:var(--font-num); font-weight:600; }
+.tl-item .tl-d{ font-size:10.5px; color:var(--muted); margin-top:4px; line-height:1.6; }
+.tl-item.future .tl-t{ color:#9AA9A0; }
+.tl-item.future .tl-d{ color:#B3BFB7; }
+
+.courier{
+  display:flex; align-items:center; gap:12px;
+}
+.courier .avatar{
+  width:42px; height:42px; border-radius:50%; flex:none;
+  background:linear-gradient(150deg,#DFF3E8,#BEE5D2);
+  display:grid; place-items:center; font-size:16px; color:var(--deep); font-weight:800;
+}
+.courier .c-main{ flex:1; }
+.courier .c-name{ font-size:13px; font-weight:700; display:flex; align-items:center; gap:6px; }
+.courier .c-sub{ font-size:10.5px; color:var(--muted); margin-top:3px; }
+.callbtn{
+  width:38px; height:38px; border-radius:50%; background:var(--mint);
+  display:grid; place-items:center; color:var(--deep); flex:none;
+}
+.tempbar{ margin-top:12px; }
+.tempbar .tb-l{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted); margin-bottom:6px; }
+.tempbar .tb-track{ height:6px; border-radius:3px; background:#EDF3EE; overflow:hidden; position:relative; }
+.tempbar .tb-fill{ height:100%; border-radius:3px; background:linear-gradient(90deg,#5FC79A,#1F9A63); transition:width .6s; }
+.tempbar .tb-mark{ position:absolute; top:-2px; bottom:-2px; width:1.5px; background:var(--deep); opacity:.4; }
+
+.progress-steps{ display:flex; align-items:center; gap:0; margin-top:4px; }
+.ps{ flex:1; text-align:center; position:relative; }
+.ps .ps-dot{ width:8px; height:8px; border-radius:50%; background:#DDE8E1; margin:0 auto 5px; }
+.ps.done .ps-dot{ background:var(--green); }
+.ps .ps-l{ font-size:9.5px; color:var(--muted); letter-spacing:.2px; }
+.ps.done .ps-l{ color:var(--deep); font-weight:700; }
+.ps::before{
+  content:""; position:absolute; top:3.5px; left:-50%; width:100%; height:1.5px; background:#E3EDE7;
+}
+.ps:first-child::before{ display:none; }
+.ps.done::before{ background:var(--green-2); opacity:.5; }
+
+/* 回访卡 */
+.visit{
+  border-radius:14px; padding:13px 14px;
+  background:linear-gradient(150deg,rgba(223,243,232,.72),rgba(246,251,247,.9));
+  border:1px dashed rgba(28,107,76,.22);
+}
+.visit .v-head{ display:flex; align-items:center; gap:7px; font-size:12px; font-weight:800; color:var(--deep); }
+.visit .v-body{ margin-top:9px; font-size:11px; line-height:1.8; color:#3E5A4C; }
+.visit .v-grid{ display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:10px; }
+.visit .vg{ background:#fff; border-radius:9px; padding:7px 9px; }
+.visit .vg .k{ font-size:9.5px; color:var(--muted); letter-spacing:.3px; }
+.visit .vg .v{ font-size:11.5px; font-weight:700; margin-top:2px; }
+
+/* ============================ 自费自选 ============================ */
+
+.self-banner{
+  margin:0 var(--pad); border-radius:16px; padding:14px 15px;
+  background:linear-gradient(140deg,#FFF3E9,#FDE7D6);
+  display:flex; align-items:center; gap:12px;
+  border:1px solid rgba(255,138,61,.14);
+}
+.self-banner .sb-ico{ font-size:20px; }
+.self-banner .sb-t{ font-size:12.5px; font-weight:800; color:#9C4E16; }
+.self-banner .sb-s{ font-size:10.5px; color:#A96833; margin-top:3px; line-height:1.6; }
+
+.rest{
+  background:#fff; border-radius:15px; padding:13px 14px; margin-bottom:10px;
+  box-shadow:0 3px 14px rgba(28,107,76,.05);
+}
+.rest-h{ display:flex; align-items:center; gap:8px; }
+.rest-h .rh-logo{
+  width:32px; height:32px; border-radius:9px; background:linear-gradient(150deg,#E7F5EC,#D2ECDF);
+  display:grid; place-items:center; font-size:14px; flex:none;
+}
+.rest-h .rh-main{ flex:1; min-width:0; }
+.rest-h .rh-name{ font-size:12.5px; font-weight:800; display:flex; align-items:center; gap:6px; }
+.rest-h .rh-sub{ font-size:10px; color:var(--muted); margin-top:2px; }
+.dish{
+  display:flex; align-items:center; gap:10px; padding:10px 0;
+  border-bottom:1px dashed rgba(28,107,76,.1);
+}
+.dish:last-child{ border-bottom:0; padding-bottom:2px; }
+.dish .d-main{ flex:1; min-width:0; }
+.dish .d-name{ font-size:12.5px; font-weight:600; }
+.dish .d-desc{ font-size:10px; color:var(--muted); margin-top:3px; }
+.dish .d-price{ font-family:var(--font-num); font-size:13px; font-weight:800; color:#9C4E16; margin-right:2px; }
+.addbtn{
+  width:24px; height:24px; border-radius:50%; background:var(--green); color:#fff;
+  display:grid; place-items:center; font-size:15px; line-height:1; flex:none;
+  box-shadow:0 3px 8px -2px rgba(39,167,107,.7);
+}
+.addbtn:active{ transform:scale(.9); }
+.qtybox{ display:flex; align-items:center; gap:8px; }
+.qtybox button{ width:22px; height:22px; border-radius:50%; background:var(--mint); color:var(--deep); font-size:13px; display:grid; place-items:center; line-height:1; }
+.qtybox .q{ font-family:var(--font-num); font-size:12px; font-weight:700; min-width:12px; text-align:center; }
+
+.cart-fab{
+  position:absolute; left:var(--pad); right:var(--pad); bottom:calc(12px + env(safe-area-inset-bottom,0));
+  height:50px; border-radius:15px; background:var(--deep); color:#fff;
+  display:flex; align-items:center; gap:10px; padding:0 8px 0 16px;
+  box-shadow:0 12px 28px -8px rgba(16,60,42,.55);
+  z-index:30;
+  animation:sheetUp .3s cubic-bezier(.2,.85,.3,1) both;
+}
+.cart-fab .cf-l{ flex:1; }
+.cart-fab .cf-n{ font-size:11.5px; font-weight:700; }
+.cart-fab .cf-s{ font-size:9.5px; opacity:.65; margin-top:2px; }
+.cart-fab .cf-btn{
+  height:38px; padding:0 16px; border-radius:11px; background:var(--green);
+  font-size:12.5px; font-weight:700; display:grid; place-items:center; letter-spacing:.4px;
+}
+.cart-fab .cf-amt{ font-family:var(--font-num); font-size:16px; font-weight:800; }
+
+/* ============================ 补贴明细 ============================ */
+
+.sub-hero{
+  margin:0 var(--pad); border-radius:20px; padding:18px; position:relative; overflow:hidden;
+  background:linear-gradient(150deg,#1F7A57,#1C6B4C 60%,#15543B);
+  color:#fff;
+}
+.sub-hero::after{
+  content:""; position:absolute; right:-30px; bottom:-50px; width:130px; height:130px;
+  border-radius:50%; background:rgba(255,255,255,.07);
+}
+.sub-hero .sh-l{ font-size:10.5px; opacity:.8; letter-spacing:1.2px; }
+.sub-hero .sh-amt{ font-family:var(--font-num); font-size:34px; font-weight:800; margin-top:6px; letter-spacing:-.5px; }
+.sub-hero .sh-amt small{ font-size:14px; font-weight:600; opacity:.7; margin-left:3px; }
+.sub-hero .sh-bar{ margin-top:14px; height:5px; border-radius:3px; background:rgba(255,255,255,.18); overflow:hidden; }
+.sub-hero .sh-bar i{ display:block; height:100%; border-radius:3px; background:#8FE3BC; transition:width .7s; }
+.sub-hero .sh-foot{ display:flex; justify-content:space-between; margin-top:9px; font-size:10px; opacity:.82; position:relative; z-index:2; }
+
+.tier{ display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px dashed rgba(28,107,76,.1); }
+.tier:last-child{ border-bottom:0; }
+.tier .t-main{ flex:1; }
+.tier .t-name{ font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px; }
+.tier .t-cond{ font-size:10px; color:var(--muted); margin-top:3px; }
+.tier .t-val{ text-align:right; font-family:var(--font-num); font-size:12.5px; font-weight:800; color:var(--deep); }
+.tier .t-val small{ display:block; font-family:var(--font); font-size:9px; color:var(--muted); font-weight:500; }
+.tier.me{ background:rgba(39,167,107,.055); border-radius:10px; padding:11px 10px; margin:0 -10px; }
+
+.ledger-item{ display:flex; gap:11px; padding:12px 0; border-bottom:1px solid var(--line); }
+.ledger-item:last-child{ border-bottom:0; }
+.li-ico{
+  width:32px; height:32px; border-radius:10px; flex:none; display:grid; place-items:center;
+  background:var(--mint); color:var(--deep); font-size:13px; font-weight:800;
+}
+.li-ico.out{ background:rgba(255,138,61,.13); color:#C2601F; }
+.li-main{ flex:1; min-width:0; }
+.li-t{ font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px; }
+.li-s{ font-size:10px; color:var(--muted); margin-top:4px; line-height:1.55; }
+.li-v{ text-align:right; font-family:var(--font-num); font-size:13px; font-weight:800; color:var(--green); }
+.li-v.out{ color:var(--orange); }
+
+/* ============================ 订单列表 ============================ */
+
+.tabs{
+  display:flex; gap:4px; padding:0 var(--pad) 2px; overflow-x:auto;
+}
+.tabs::-webkit-scrollbar{ display:none; }
+.tabs button{
+  height:28px; padding:0 13px; border-radius:9px; font-size:11.5px; color:var(--muted);
+  white-space:nowrap; font-weight:600;
+}
+.tabs button.on{ background:var(--deep); color:#fff; font-weight:700; }
+
+.ord{
+  background:#fff; border-radius:15px; padding:12px 13px; margin:0 var(--pad) 9px;
+  box-shadow:0 3px 14px rgba(28,107,76,.05);
+  transition:transform .12s;
+}
+.ord:active{ transform:scale(.995); }
+.ord-h{ display:flex; align-items:center; gap:7px; }
+.ord-h .o-id{ font-size:10px; color:var(--muted); font-family:var(--font-num); letter-spacing:.3px; flex:1; }
+.ord-h .o-st{ font-size:10.5px; font-weight:700; }
+.ord-b{ display:flex; gap:10px; margin-top:9px; align-items:flex-start; }
+.ord-b .o-main{ flex:1; min-width:0; }
+.ord-b .o-name{ font-size:13px; font-weight:700; line-height:1.35; }
+.ord-b .o-meta{ font-size:10px; color:var(--muted); margin-top:4px; }
+.ord-b .o-amt{ text-align:right; }
+.ord-b .o-amt .money{ font-size:15px; color:var(--ink); }
+.ord-b .o-amt .o-save{ font-size:9.5px; color:var(--green); margin-top:2px; }
+.ord-f{ display:flex; gap:8px; margin-top:9px; padding-top:9px; border-top:1px solid var(--line); }
+.ord-f .grow{ flex:1; }
+.ord-f .btn{ height:32px; font-size:11.5px; padding:0 13px; border-radius:10px; }
+
+/* ============================ 消息 ============================ */
+
+.msg{
+  display:flex; gap:11px; padding:13px 14px; background:#fff; border-radius:14px;
+  margin:0 var(--pad) 9px; box-shadow:0 3px 12px rgba(28,107,76,.045);
+  position:relative;
+}
+.msg.unread::after{
+  content:""; position:absolute; right:12px; top:14px; width:6px; height:6px;
+  border-radius:50%; background:var(--red);
+}
+.msg .m-ico{
+  width:34px; height:34px; border-radius:11px; flex:none; display:grid; place-items:center;
+  font-size:15px; background:var(--mint);
+}
+.msg .m-ico.orange{ background:rgba(255,138,61,.14); }
+.msg .m-ico.blue{ background:rgba(60,127,176,.12); }
+.msg .m-ico.red{ background:rgba(229,99,91,.12); }
+.msg .m-main{ flex:1; min-width:0; }
+.msg .m-t{ font-size:12.5px; font-weight:700; padding-right:16px; }
+.msg .m-b{ font-size:10.5px; color:var(--muted); margin-top:4px; line-height:1.65; }
+.msg .m-time{ font-size:9.5px; color:#A6B3AB; margin-top:6px; font-family:var(--font-num); }
+
+/* ============================ 我的 ============================ */
+
+.profile-hero{
+  margin:0 var(--pad); border-radius:20px; padding:18px;
+  background:linear-gradient(155deg,#FFFFFF,#F4FAF6);
+  box-shadow:0 6px 22px rgba(28,107,76,.07);
+  position:relative; overflow:hidden;
+}
+.profile-hero::after{
+  content:""; position:absolute; right:-34px; top:-34px; width:110px; height:110px;
+  border-radius:50%; background:rgba(173,226,201,.24);
+}
+.ph-row{ display:flex; align-items:center; gap:13px; position:relative; z-index:2; }
+.ph-avatar{
+  width:52px; height:52px; border-radius:50%; flex:none;
+  background:linear-gradient(150deg,#DFF3E8,#BFE6D3);
+  display:grid; place-items:center; font-size:19px; font-weight:800; color:var(--deep);
+}
+.ph-name{ font-size:16.5px; font-weight:800; letter-spacing:.3px; display:flex; align-items:center; gap:7px; }
+.ph-sub{ font-size:10.5px; color:var(--muted); margin-top:5px; letter-spacing:.2px; }
+.ph-tags{ display:flex; gap:5px; margin-top:9px; flex-wrap:wrap; position:relative; z-index:2; }
+.ph-stats{
+  display:grid; grid-template-columns:repeat(3,1fr); margin-top:15px;
+  padding-top:14px; border-top:1px solid rgba(28,107,76,.08);
+  position:relative; z-index:2;
+}
+.ph-stats .st{ text-align:center; }
+.ph-stats .st .v{ font-family:var(--font-num); font-size:17px; font-weight:800; color:var(--deep); }
+.ph-stats .st .k{ font-size:9.5px; color:var(--muted); margin-top:3px; letter-spacing:.3px; }
+
+.menu-list{ background:#fff; border-radius:16px; margin:0 var(--pad); overflow:hidden; box-shadow:0 3px 14px rgba(28,107,76,.05); }
+.mi{
+  display:flex; align-items:center; gap:11px; padding:14px 15px;
+  border-bottom:1px solid var(--line);
+  width:100%; text-align:left;
+}
+.mi:last-child{ border-bottom:0; }
+.mi:active{ background:#F7FBF8; }
+.mi .mi-ico{ width:28px; height:28px; border-radius:9px; background:var(--mint); display:grid; place-items:center; font-size:13px; flex:none; }
+.mi .mi-l{ flex:1; font-size:12.5px; font-weight:600; }
+.mi .mi-l small{ display:block; font-size:10px; color:var(--muted); font-weight:400; margin-top:3px; }
+.mi .mi-r{ font-size:11px; color:var(--muted); }
+
+/* ============================ 网格员代登记 ============================ */
+
+.grid-head{
+  margin:0 var(--pad); border-radius:16px; padding:14px 15px;
+  background:linear-gradient(145deg,#F0F8F3,#E2F2E9);
+  border:1px solid rgba(28,107,76,.1);
+}
+.grid-head .gh-t{ font-size:12.5px; font-weight:800; color:var(--deep); display:flex; align-items:center; gap:7px; }
+.grid-head .gh-s{ font-size:10.5px; color:#4E6F5D; margin-top:6px; line-height:1.7; }
+
+.elder{
+  display:flex; align-items:center; gap:11px;
+  padding:12px 13px; border-radius:13px; background:#fff; margin-bottom:8px;
+  box-shadow:0 2px 10px rgba(28,107,76,.045);
+  transition:all .16s; border:1.4px solid transparent;
+}
+.elder.on{ border-color:var(--green); background:rgba(39,167,107,.045); }
+.elder .e-av{
+  width:34px; height:34px; border-radius:50%; flex:none; display:grid; place-items:center;
+  background:var(--mint); color:var(--deep); font-size:13px; font-weight:800;
+}
+.elder .e-main{ flex:1; min-width:0; }
+.elder .e-name{ font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:6px; }
+.elder .e-meta{ font-size:10px; color:var(--muted); margin-top:3px; }
+.elder .e-box{
+  width:19px; height:19px; border-radius:6px; border:1.6px solid #CBD9D0; flex:none;
+  display:grid; place-items:center; font-size:11px; color:#fff;
+}
+.elder.on .e-box{ background:var(--green); border-color:var(--green); }
+
+.voice{
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  padding:18px 14px; border-radius:16px; background:#fff;
+  box-shadow:0 3px 14px rgba(28,107,76,.05);
+}
+.voice .v-btn{
+  width:64px; height:64px; border-radius:50%; background:var(--green); color:#fff;
+  display:grid; place-items:center;
+  box-shadow:0 8px 22px -6px rgba(39,167,107,.8);
+  position:relative;
+}
+.voice .v-btn.rec{ animation:recPulse 1.4s infinite; }
+@keyframes recPulse{ 0%{ box-shadow:0 0 0 0 rgba(39,167,107,.5) } 100%{ box-shadow:0 0 0 22px rgba(39,167,107,0) } }
+.voice .v-t{ font-size:11.5px; color:var(--muted); text-align:center; line-height:1.6; }
+.voice .v-res{
+  width:100%; background:#F5FAF7; border-radius:11px; padding:11px 12px;
+  font-size:11.5px; line-height:1.75; color:var(--ink); min-height:44px;
+}
+.voice .v-res .vw{ color:var(--deep); font-weight:700; }
+.voice .v-res .blink{ display:inline-block; width:1px; height:12px; background:var(--green); vertical-align:-2px; animation:blink .8s steps(1) infinite; }
+@keyframes blink{ 50%{ opacity:0 } }
+
+.voucher{
+  background:#fff; border-radius:18px; padding:18px 16px;
+  box-shadow:0 8px 30px rgba(28,107,76,.1);
+  position:relative; overflow:hidden;
+  border-top:5px solid var(--green);
+}
+.voucher::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:34px;
+  background:repeating-linear-gradient(45deg, rgba(39,167,107,.05) 0 6px, transparent 6px 12px);
+  pointer-events:none;
+}
+.vc-head{ display:flex; align-items:center; gap:8px; }
+.vc-head .vh-t{ font-size:13px; font-weight:800; letter-spacing:1.2px; color:var(--deep); flex:1; }
+.vc-head .vh-n{ font-size:9.5px; color:var(--muted); font-family:var(--font-num); letter-spacing:.4px; }
+.vc-line{ height:1px; background:repeating-linear-gradient(90deg,#D9E6DD 0 5px,transparent 5px 10px); margin:12px 0; }
+.vc-row{ display:flex; justify-content:space-between; gap:10px; padding:5px 0; font-size:11.5px; }
+.vc-row .k{ color:var(--muted); }
+.vc-row .v{ font-weight:700; text-align:right; }
+.vc-qr{ display:flex; align-items:center; gap:14px; margin-top:12px; }
+.vc-qr img{ width:82px; height:82px; border-radius:8px; background:#fff; }
+.vc-qr .qr-t{ font-size:10.5px; color:var(--muted); line-height:1.75; }
+.vc-sign{ margin-top:14px; display:flex; align-items:center; gap:10px; }
+.vc-sign .sig-box{
+  flex:1; height:56px; border-radius:10px; border:1.4px dashed rgba(28,107,76,.28);
+  display:grid; place-items:center; font-size:10.5px; color:#A6B3AB;
+  position:relative; overflow:hidden; background:#FCFEFD;
+}
+.vc-sign .sig-box canvas{ position:absolute; inset:0; width:100%; height:100%; touch-action:none; }
+.sig-hint{ font-size:10px; color:var(--muted); }
+
+/* ============================ 调度中枢 ============================ */
+
+.ops{ background:#F6F8F7; }
+.ops-top{
+  flex:none; padding:12px var(--pad) 10px;
+  background:linear-gradient(160deg,#183A2B,#123026);
+  color:#fff;
+}
+.ops-top .ot-row{ display:flex; align-items:center; gap:9px; }
+.ops-top .ot-brand{ font-size:14px; font-weight:800; letter-spacing:1.6px; }
+.ops-top .ot-sub{ font-size:9.5px; opacity:.62; letter-spacing:.4px; margin-top:2px; }
+.ops-top .ot-tag{
+  font-size:9px; padding:3px 7px; border-radius:5px; background:rgba(255,255,255,.12);
+  letter-spacing:.4px; border:1px solid rgba(255,255,255,.14);
+}
+.ops-top .ot-live{
+  margin-left:auto; display:flex; align-items:center; gap:5px;
+  font-size:9.5px; opacity:.9;
+}
+.ops-top .ot-live i{ width:5px; height:5px; border-radius:50%; background:#5BE09A; animation:pulse 1.6s infinite; }
+
+.kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:12px; }
+.kpi{
+  background:rgba(255,255,255,.075); border-radius:11px; padding:9px 10px;
+  border:1px solid rgba(255,255,255,.07);
+}
+.kpi .k-v{ font-family:var(--font-num); font-size:18px; font-weight:800; letter-spacing:-.3px; line-height:1.1; }
+.kpi .k-v small{ font-size:9px; font-weight:600; opacity:.6; margin-left:2px; }
+.kpi .k-k{ font-size:9px; opacity:.6; margin-top:4px; letter-spacing:.3px; }
+.kpi.warn .k-v{ color:#FFC57A; }
+.kpi.good .k-v{ color:#6FE0A6; }
+
+.ops-body{ flex:1; overflow-y:auto; padding-bottom:16px; }
+.ops-sec{ margin:12px var(--pad) 0; }
+.ops-sec > h4{
+  font-size:11px; font-weight:800; letter-spacing:.6px; color:#516259;
+  display:flex; align-items:center; gap:6px; margin-bottom:8px;
+}
+.ops-sec > h4 .n{ font-family:var(--font-num); color:var(--green); }
+.ops-sec > h4 .r{ margin-left:auto; font-weight:500; font-size:9.5px; color:#8C9A92; }
+
+.ocard{
+  background:#fff; border-radius:13px; padding:12px 13px;
+  box-shadow:0 2px 10px rgba(28,107,76,.05);
+  border:1px solid rgba(28,107,76,.05);
+}
+.ai-card{
+  background:linear-gradient(155deg,#F2FBF6,#E6F6EE);
+  border:1px solid rgba(39,167,107,.22);
+  border-radius:15px; padding:13px 14px; position:relative; overflow:hidden;
+}
+.ai-card::before{
+  content:"AI"; position:absolute; right:12px; bottom:8px;
+  font-family:var(--font-num); font-size:36px; font-weight:800; color:rgba(39,167,107,.09);
+  letter-spacing:-2px; pointer-events:none;
+}
+.ai-h{ display:flex; align-items:center; gap:7px; font-size:11.5px; font-weight:800; color:var(--deep); }
+.ai-h .ai-dot{
+  width:16px; height:16px; border-radius:5px; background:var(--green); color:#fff;
+  display:grid; place-items:center; font-size:8.5px; font-weight:800; letter-spacing:.2px;
+}
+.ai-reason{
+  margin-top:9px; font-size:10.5px; line-height:1.7; color:#3E5A4C;
+  background:rgba(255,255,255,.7); border-radius:9px; padding:9px 10px;
+}
+.ai-reason b{ color:var(--deep); }
+.ai-alloc{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:10px; }
+.alloc{ background:#fff; border-radius:9px; padding:8px 9px; text-align:center; }
+.alloc .a-v{ font-family:var(--font-num); font-size:16px; font-weight:800; color:var(--deep); }
+.alloc .a-k{ font-size:8.5px; color:var(--muted); margin-top:2px; letter-spacing:.2px; }
+.ai-acts{ display:flex; gap:7px; margin-top:11px; }
+.ai-acts .btn{ flex:1; height:36px; font-size:11.5px; border-radius:11px; padding:0 10px; }
+
+.olist{ display:flex; flex-direction:column; gap:7px; }
+.oitem{
+  background:#fff; border-radius:12px; padding:10px 12px;
+  display:flex; align-items:center; gap:10px;
+  border:1px solid rgba(28,107,76,.05);
+  box-shadow:0 1px 6px rgba(28,107,76,.04);
+  transition:all .16s;
+}
+.oitem.done{ opacity:.55; background:#F4F8F5; }
+.oitem.over{ border-color:rgba(233,162,59,.5); background:#FFFBF3; }
+.oitem .oi-main{ flex:1; min-width:0; }
+.oitem .oi-t{ font-size:11.5px; font-weight:700; display:flex; align-items:center; gap:5px; }
+.oitem .oi-s{ font-size:9.5px; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.oitem .oi-r{ text-align:right; flex:none; }
+.oitem .oi-route{
+  font-size:8.5px; font-weight:700; padding:3px 6px; border-radius:5px;
+  background:var(--mint); color:var(--deep); letter-spacing:.2px;
+  display:inline-block;
+}
+.oitem .oi-route.third{ background:rgba(60,127,176,.12); color:#2C6491; }
+.oitem .oi-route.vol{ background:rgba(255,138,61,.14); color:#B4551C; }
+
+.pool{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.pool .p-card{ background:#fff; border-radius:11px; padding:10px; }
+.pool .p-n{ font-size:9.5px; color:var(--muted); letter-spacing:.2px; }
+.pool .p-v{ font-family:var(--font-num); font-size:14px; font-weight:800; margin-top:3px; }
+.pool .p-bar{ height:4px; border-radius:2px; background:#EEF3EF; margin-top:7px; overflow:hidden; }
+.pool .p-bar i{ display:block; height:100%; border-radius:2px; }
+.pool .p-l{ font-size:8.5px; color:#9AA9A0; margin-top:4px; }
+
+.exc{
+  border-left:3px solid var(--amber);
+  background:#fff; border-radius:12px; padding:12px 13px;
+  box-shadow:0 2px 10px rgba(28,107,76,.05);
+  margin-bottom:8px;
+}
+.exc.closed{ border-left-color:var(--green-2); opacity:.72; }
+.exc.overdue{ border-left-color:var(--red); }
+.exc-h{ display:flex; align-items:center; gap:7px; }
+.exc-h .ex-t{ font-size:11.5px; font-weight:800; flex:1; }
+.exc-b{ font-size:10px; color:var(--muted); margin-top:6px; line-height:1.7; }
+.exc-time{
+  font-family:var(--font-num); font-size:9.5px; color:var(--amber);
+  background:rgba(233,162,59,.12); padding:2px 6px; border-radius:5px; font-weight:700;
+}
+.exc-time.ok{ color:var(--green); background:rgba(39,167,107,.12); }
+.exc-time.bad{ color:var(--red); background:rgba(229,99,91,.1); }
+.exc-acts{ display:flex; gap:7px; margin-top:10px; }
+.exc-acts .btn{ height:31px; font-size:10.5px; padding:0 10px; border-radius:9px; flex:1; }
+
+.conclusion{ display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:4px; }
+.conclusion button{
+  height:38px; border-radius:10px; border:1.4px solid var(--line); background:#fff;
+  font-size:11.5px; font-weight:600;
+}
+.conclusion button.on{ border-color:var(--green); background:rgba(39,167,107,.07); color:var(--deep); font-weight:700; }
+
+.opsnav{
+  flex:none; display:grid; grid-template-columns:repeat(5,1fr);
+  background:#fff; border-top:1px solid rgba(28,107,76,.08);
+  padding-bottom:env(safe-area-inset-bottom,0);
+}
+.opsnav button{
+  padding:8px 1px 7px; display:flex; flex-direction:column; align-items:center; gap:3px;
+  font-size:9px; color:#8C9A92; letter-spacing:.2px;
+}
+.opsnav button .on{ color:var(--deep); }
+.opsnav button.on{ color:var(--deep); font-weight:700; }
+.opsnav svg{ display:block; }
+
+/* 台账 */
+.ltable{ background:#fff; border-radius:13px; overflow:hidden; box-shadow:0 2px 10px rgba(28,107,76,.05); }
+.ltable .lt-h{ display:grid; grid-template-columns:1.4fr 1fr .9fr; gap:6px; padding:9px 12px; background:#F3F8F4; font-size:9px; color:#6C7C72; font-weight:700; letter-spacing:.2px; }
+.ltable .lt-r{ display:grid; grid-template-columns:1.4fr 1fr .9fr; gap:6px; padding:10px 12px; border-top:1px solid var(--line); font-size:10px; align-items:center; }
+.ltable .lt-r .c1{ font-weight:700; }
+.ltable .lt-r .c1 small{ display:block; font-weight:400; color:var(--muted); font-size:8.5px; margin-top:2px; }
+.ltable .lt-r .c3{ text-align:right; font-family:var(--font-num); font-weight:800; color:var(--deep); }
+.dual{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.dual .d-card{ background:#fff; border-radius:11px; padding:11px 12px; }
+.dual .d-card .d-k{ font-size:9px; color:var(--muted); }
+.dual .d-card .d-v{ font-family:var(--font-num); font-size:17px; font-weight:800; margin-top:4px; }
+.dual .d-card .d-s{ font-size:8.5px; color:var(--muted); margin-top:4px; }
+
+/* 看板 */
+.gov-kpis{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.gk{ background:#fff; border-radius:13px; padding:12px 13px; box-shadow:0 2px 10px rgba(28,107,76,.05); position:relative; overflow:hidden; }
+.gk .gk-k{ font-size:9.5px; color:var(--muted); letter-spacing:.2px; }
+.gk .gk-v{ font-family:var(--font-num); font-size:23px; font-weight:800; margin-top:5px; letter-spacing:-.5px; color:var(--deep); }
+.gk .gk-v small{ font-size:10px; font-weight:600; color:var(--muted); margin-left:3px; }
+.gk .gk-d{ font-size:9px; color:var(--green); margin-top:4px; }
+.gk .gk-spark{ position:absolute; right:8px; bottom:8px; opacity:.5; }
+
+.bars{ display:flex; align-items:flex-end; gap:6px; height:78px; padding:0 2px; }
+.bars .bar{ flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:4px; height:100%; }
+.bars .bar i{
+  display:block; width:100%; border-radius:4px 4px 2px 2px;
+  background:linear-gradient(180deg,#4CC391,#27A76B);
+  min-height:4px; transition:height .6s cubic-bezier(.3,1,.4,1);
+}
+.bars .bar.today i{ background:linear-gradient(180deg,#FFB077,#FF8A3D); }
+.bars .bar span{ font-size:8px; color:var(--muted); }
+
+.gauge{ display:flex; align-items:center; gap:12px; }
+.gauge .g-ring{ position:relative; width:64px; height:64px; flex:none; }
+.gauge .g-ring svg{ transform:rotate(-90deg); }
+.gauge .g-ring .g-txt{ position:absolute; inset:0; display:grid; place-items:center; font-family:var(--font-num); font-size:15px; font-weight:800; color:var(--deep); }
+.gauge .g-main .g-t{ font-size:11.5px; font-weight:700; }
+.gauge .g-main .g-s{ font-size:9.5px; color:var(--muted); margin-top:4px; line-height:1.6; }
+
+.redline{ display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px dashed rgba(28,107,76,.1); font-size:10.5px; }
+.redline:last-child{ border-bottom:0; }
+.redline .rl-i{
+  width:16px; height:16px; border-radius:50%; background:rgba(39,167,107,.14); color:var(--deep);
+  display:grid; place-items:center; font-size:9px; flex:none; font-weight:800;
+}
+.redline .rl-t{ flex:1; }
+.redline .rl-v{ font-family:var(--font-num); font-weight:800; color:var(--deep); font-size:11px; }
+
+/* 空态/演示工具 */
+.demo-tip{
+  margin:10px var(--pad) 0; padding:10px 12px; border-radius:11px;
+  background:rgba(39,167,107,.06); border:1px dashed rgba(39,167,107,.28);
+  font-size:10px; color:#4A6B5A; line-height:1.75;
+}
+.demo-tip b{ color:var(--deep); }
+
+.fab-demo{
+  position:absolute; right:var(--pad); bottom:calc(var(--nav-h) + 14px);
+  height:34px; padding:0 13px; border-radius:17px;
+  background:rgba(22,42,32,.86); color:#fff; font-size:11px; font-weight:600;
+  display:flex; align-items:center; gap:6px;
+  box-shadow:0 8px 20px -6px rgba(0,0,0,.4); z-index:40;
+  backdrop-filter:blur(4px);
+}
+.fab-demo:active{ transform:scale(.96); }
+</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2327A76B'/%3E%3Ctext x='32' y='45' font-size='34' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%23fff'%3E%E9%A3%9F%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<div class="device" id="device">
+  <div class="frame" id="frame">
+    <div class="app" id="app">
+      <!-- rendered by app.js -->
+    </div>
+    <div class="stage-mask" id="mask" hidden></div>
+  </div>
+  <div class="hint" id="hint">
+    <span class="hint-dot"></span> 演示原型 · 可点击操作 · 数据仅存于本机
+  </div>
+</div>
+
+<!-- 启动画面 -->
+<div class="splash" id="splash">
+  <div class="splash-inner">
+    <div class="splash-logo">食刻</div>
+    <div class="splash-tag">暖食一刻 · 助餐服务</div>
+    <div class="splash-line"></div>
+    <div class="splash-sub">每一食刻，都在一刻钟内</div>
+    <div class="splash-load"><i></i></div>
+  </div>
+</div>
+
+<script>
+window.__dbg = [];
+window.addEventListener('error', function (e) {
+  window.__dbg.push('ERR: ' + e.message + ' @ ' + String(e.filename).split('/').pop() + ':' + e.lineno);
+  try {
+    var pre = document.createElement('pre');
+    pre.style.cssText = 'position:fixed;left:0;top:0;z-index:99999;background:#fff;color:#c00;font:11px/1.5 monospace;padding:8px;white-space:pre-wrap;width:100%';
+    (pre.textContent = window.__dbg.join('\n')), document.body.appendChild(pre);
+  } catch (_) {}
+});
+</script>
+<script>
+/* ==== assets/data.js ==== */
+/* ==========================================================================
+   食刻 · 暖食一刻  |  data.js —— 领域数据（来自《食刻》答辩 PPT 与首页高保真稿）
+   ========================================================================== */
+(function (w) {
+  'use strict';
+  const SK = (w.SK = w.SK || {});
+
+  SK.BRAND = {
+    name: '食刻',
+    tagline: '暖食一刻 · 助餐服务',
+    slogan: '每一食刻，都在一刻钟内',
+    street: '蜀山区三里庵街道',
+    org: '合肥市蜀山区三里庵街道 · 暖食一刻助餐调度中心',
+    version: 'V0.9 · MVP Demo'
+  };
+
+  /* ------------------------------ 五类角色 ------------------------------ */
+
+  SK.elder = {
+    id: 'E1001',
+    name: '钱秀兰',
+    call: '钱秀兰',
+    age: 78,
+    sex: '女',
+    live: '独居',
+    level: '失能 2 级',
+    phone: '138****6621',
+    addr: '竹荫里社区 3 号楼 2 单元 401',
+    street: '蜀山区三里庵街道 · 竹荫里社区',
+    tags: ['失能 2 级', '独居', '低盐', '软食', '需敲门回访'],
+    pension: 2800,
+    quota: 5.00,          // 今日民政就餐补贴额度（元）
+    coupon: 0,            // 其他抵扣
+    gridWorker: '王海',
+    gridPhone: '139****3308',
+    blood: 'AB',
+    allergy: '青霉素',
+    chronic: ['高血压', '膝关节退行性病变']
+  };
+
+  SK.family = {
+    name: '林思思', rel: '女儿', age: 39, city: '上海',
+    phone: '136****9027', power: '代订 + 查看回访记录'
+  };
+
+  SK.gridWorker = { name: '王海', role: '竹荫里社区网格员', phone: '139****3308', blocks: '3–5 号楼', hours: 26.5 };
+  SK.dispatcher = { name: '周明', role: '街道助餐调度员', phone: '内线 8001' };
+
+  /* ------------------------------ 梯度补贴 ------------------------------ */
+
+  SK.tiers = [
+    { k: 'A', name: '失能 · 独居 · 特困', cond: '失能评估 ≥2 级 / 低保全额 / 80 岁以上独居', meal: 5, deliver: 2 },
+    { k: 'B', name: '高龄老人', cond: '80 周岁及以上', meal: 3, deliver: 1 },
+    { k: 'C', name: '困难老人', cond: '低保 / 低收入家庭', meal: 4, deliver: 2 },
+    { k: 'D', name: '普通普惠', cond: '60–79 周岁', meal: 2, deliver: 1 }
+  ];
+  SK.myTier = 'A';
+
+  /* ------------------------------ 今日补贴套餐 ------------------------------ */
+
+  SK.meals = [
+    {
+      id: 'tb', name: '糖醋排骨饭', price: 18, net: 14, subsidy: 4,
+      tag: '高蛋白', emoji: '🍖', kcal: 620, hot: true,
+      desc: '去骨小排 · 慢炖 90 分钟 · 微甜不腻',
+      items: ['糖醋排骨 120g', '软米饭 180g', '时令青菜', '紫菜蛋花汤'],
+      fit: ['牙口一般', '需要补蛋白']
+    },
+    {
+      id: 'ly', name: '清蒸鲈鱼饭', price: 16, net: 13, subsidy: 3,
+      tag: '低盐', emoji: '🐟', kcal: 540, hot: true,
+      desc: '当日活鲈鱼 · 清蒸 8 分钟 · 钠 ≤ 400mg',
+      items: ['清蒸鲈鱼 100g', '软米饭 180g', '冬瓜虾皮', '菌菇汤'],
+      fit: ['高血压', '低盐饮食']
+    },
+    {
+      id: 'fq', name: '番茄鸡蛋软饭', price: 10, net: 8, subsidy: 2,
+      tag: '软食', emoji: '🍅', kcal: 460, hot: true,
+      desc: '番茄煨软 · 蛋羹同蒸 · 入口即化',
+      items: ['番茄炒蛋 110g', '软米饭 180g', '嫩豆腐', '小米粥'],
+      fit: ['吞咽困难', '咀嚼无力']
+    },
+    {
+      id: 'xj', name: '香菇滑鸡软饭', price: 15, net: 12, subsidy: 3,
+      tag: '低盐 · 软食', emoji: '🍄', kcal: 580,
+      desc: '鸡腿肉去骨 · 香菇同蒸 · 少油少盐',
+      items: ['香菇滑鸡 110g', '软米饭 180g', '西兰花', '玉米羹'],
+      fit: ['牙口一般', '低盐饮食']
+    },
+    {
+      id: 'xm', name: '小米南瓜粥套餐', price: 9, net: 7, subsidy: 2,
+      tag: '易消化', emoji: '🥣', kcal: 380,
+      desc: '小米熬 40 分钟 · 南瓜同煮 · 温热送达',
+      items: ['小米南瓜粥 350ml', '蒸蛋 1 份', '软馒头 1 个', '凉拌菠菜'],
+      fit: ['胃口差', '需温热流食']
+    },
+    {
+      id: 'df', name: '青菜肉末豆腐', price: 12, net: 10, subsidy: 2,
+      tag: '低盐 · 高钙', emoji: '🥬', kcal: 500,
+      desc: '嫩豆腐同蒸肉末 · 青菜焯后少油拌',
+      items: ['肉末豆腐 130g', '软米饭 180g', '清炒青菜', '番茄蛋汤'],
+      fit: ['骨质疏松', '低盐饮食']
+    },
+    {
+      id: 'sy', name: '山药排骨汤面', price: 14, net: 11, subsidy: 3,
+      tag: '温热 · 软烂', emoji: '🍲', kcal: 600,
+      desc: '排骨汤底 · 山药炖软 · 面条煮至软烂',
+      items: ['排骨 3 块', '山药 100g', '软面条 150g', '青菜'],
+      fit: ['怕冷饭', '需软烂主食']
+    }
+  ];
+
+  /* ------------------------------ 自费自选（签约餐馆） ------------------------------ */
+
+  SK.restaurants = [
+    {
+      id: 'r1', name: '三里庵社区食堂', type: '街道助餐点', dist: 0.4, score: 4.8,
+      note: '明厨亮灶 · 可堂食 · 支持自取',
+      dishes: [
+        { id: 'd11', name: '少盐红烧鱼', price: 28, desc: '钠 ≤ 400mg · 现杀草鱼', tags: ['低盐'] },
+        { id: 'd12', name: '软烂青菜', price: 12, desc: '炖至软烂 · 少油', tags: ['软食'] },
+        { id: 'd13', name: '香菇蒸鸡', price: 32, desc: '去骨鸡腿 · 清蒸', tags: [] }
+      ]
+    },
+    {
+      id: 'r2', name: '竹荫里家常菜馆', type: '签约社会餐馆', dist: 0.9, score: 4.6,
+      note: '已备案助餐资质 · 40 分钟送达承诺',
+      dishes: [
+        { id: 'd21', name: '番茄牛腩', price: 38, desc: '炖 2 小时 · 软烂入味', tags: ['软食'] },
+        { id: 'd22', name: '清炖鸡汤', price: 26, desc: '土鸡清炖 · 少盐', tags: ['低盐'] },
+        { id: 'd23', name: '山药木耳', price: 16, desc: '清淡少油', tags: [] }
+      ]
+    },
+    {
+      id: 'r3', name: '街道中央厨房', type: '央厨 · 兜底供给', dist: 1.6, score: 4.7,
+      note: '产能 800 份/日 · 可补足用餐高峰',
+      dishes: [
+        { id: 'd31', name: '低盐肉末蒸蛋', price: 18, desc: '蒸蛋嫩滑 · 钠 ≤ 380mg', tags: ['低盐', '软食'] },
+        { id: 'd32', name: '小米粥（大碗）', price: 6, desc: '温热 60℃ 以上', tags: [] }
+      ]
+    }
+  ];
+
+  /* ------------------------------ 收货地址（半径校验） ------------------------------ */
+
+  SK.addresses = [
+    {
+      id: 'a1', name: '家（默认）', who: '钱秀兰',
+      detail: '蜀山区三里庵街道 竹荫里社区 3 号楼 2 单元 401',
+      distance: 620, inRadius: true, selfPick: false, label: '上门配送'
+    },
+    {
+      id: 'a2', name: '社区活动室 · 集中取餐点', who: '钱秀兰',
+      detail: '竹荫里社区活动室 1 楼 · 保温柜 3 号',
+      distance: 280, inRadius: true, selfPick: true, label: '到点自取'
+    },
+    {
+      id: 'a3', name: '女儿家（上海）', who: '林思思',
+      detail: '上海市浦东新区 张江路 88 弄 12 号',
+      distance: 410000, inRadius: false, selfPick: false, label: '超出配送半径'
+    }
+  ];
+
+  /* ------------------------------ 网格员代登记名单 ------------------------------ */
+
+  SK.gridElders = [
+    { id: 'g1', name: '张桂芳', age: 81, addr: '3 号楼 1 单元 102', tag: '不会用手机 · 独居', on: true },
+    { id: 'g2', name: '李长顺', age: 84, addr: '3 号楼 2 单元 203', tag: '不会用手机 · 与老伴', on: true },
+    { id: 'g3', name: '周淑珍', age: 79, addr: '4 号楼 1 单元 301', tag: '视力障碍', on: true },
+    { id: 'g4', name: '王德林', age: 86, addr: '4 号楼 2 单元 102', tag: '不会用手机 · 失能', on: true },
+    { id: 'g5', name: '陈秀英', age: 77, addr: '5 号楼 1 单元 401', tag: '不会用手机', on: true },
+    { id: 'g6', name: '刘文彬', age: 83, addr: '3 号楼 3 单元 501', tag: '听力障碍', on: true }
+  ];
+
+  /* ------------------------------ 调度中枢：待派单 ------------------------------ */
+
+  SK.queue = [
+    { id: 'SK1123-041', who: '钱秀兰', addr: '竹荫里 3-2-401', dist: 620, tags: ['失能', '敲门回访', '低盐'], meal: '清蒸鲈鱼饭', route: 'full', urgent: 0 },
+    { id: 'SK1123-042', who: '张建国', addr: '竹荫里 4-1-203', dist: 780, tags: ['高龄', '少盐'], meal: '清蒸鲈鱼饭', route: 'full', urgent: 0 },
+    { id: 'SK1123-043', who: '李长顺', addr: '竹荫里 3-2-203', dist: 640, tags: ['高龄', '线下通道'], meal: '番茄鸡蛋软饭', route: 'full', urgent: 0 },
+    { id: 'SK1123-044', who: '周淑珍', addr: '竹荫里 4-1-301', dist: 910, tags: ['视力障碍', '敲门回访'], meal: '糖醋排骨饭', route: 'full', urgent: 1 },
+    { id: 'SK1123-045', who: '王德林', addr: '竹荫里 4-2-102', dist: 1020, tags: ['失能', '敲门回访'], meal: '香菇滑鸡软饭', route: 'full', urgent: 0 },
+    { id: 'SK1123-046', who: '陈秀英', addr: '竹荫里 5-1-401', dist: 1180, tags: ['高龄'], meal: '番茄鸡蛋软饭', route: 'third', urgent: 0 },
+    { id: 'SK1123-047', who: '刘文彬', addr: '竹荫里 3-3-501', dist: 700, tags: ['听力障碍', '线下通道'], meal: '小米南瓜粥套餐', route: 'full', urgent: 0 },
+    { id: 'SK1123-048', who: '孙凤英', addr: '梅山路 6-2-101', dist: 1340, tags: ['高龄', '边缘片区'], meal: '青菜肉末豆腐', route: 'vol', urgent: 0 },
+    { id: 'SK1123-049', who: '赵德海', addr: '梅山路 7-1-402', dist: 1420, tags: ['边缘片区'], meal: '糖醋排骨饭', route: 'vol', urgent: 0 },
+    { id: 'SK1123-050', who: '钱秀兰', addr: '竹荫里 3-2-401', dist: 620, tags: ['失能', '敲门回访'], meal: '清蒸鲈鱼饭', route: 'full', urgent: 0 },
+    { id: 'SK1123-051', who: '吴淑兰', addr: '梅山路 6-1-203', dist: 1290, tags: ['边缘片区', '低盐'], meal: '清蒸鲈鱼饭', route: 'third', urgent: 1 },
+    { id: 'SK1123-052', who: '郑桂芳', addr: '梅山路 8-3-301', dist: 1560, tags: ['边缘片区'], meal: '山药排骨汤面', route: 'vol', urgent: 0 }
+  ];
+
+  SK.pools = [
+    { k: '专职养老配送', v: '14/18', pct: 78, color: '#27A76B', l: '在线 14 · 上限 18' },
+    { k: '第三方即时配送', v: '9/12', pct: 75, color: '#3C7FB0', l: '在线 9 · SLA 40min' },
+    { k: '网格员 / 志愿者', v: '8/10', pct: 80, color: '#FF8A3D', l: '在线 8 · 含探访任务' }
+  ];
+
+  /* ------------------------------ 结算 / 台账 ------------------------------ */
+
+  SK.ledger = [
+    { id: 'SK1123-016', time: '10:42', who: '钱秀兰', meal: '清蒸鲈鱼饭', price: 16.0, subsidy: 3.0, self: 0, pay: 13.0, ch: '线上 · 家属代订', st: '已送达', temp: 64, visit: '开门 · 状态正常' },
+    { id: 'SK1123-017', time: '10:48', who: '张建国', meal: '清蒸鲈鱼饭', price: 16.0, subsidy: 0, self: 28.0, pay: 44.0, ch: '线上 · 自费加菜', st: '已送达', temp: 63, visit: '开门 · 状态正常' },
+    { id: 'SK1123-018', time: '10:55', who: '李长顺', meal: '番茄鸡蛋软饭', price: 10.0, subsidy: 2.0, self: 0, pay: 8.0, ch: '线下 · 网格员代登记', st: '已送达', temp: 62, visit: '开门 · 需协助' },
+    { id: 'SK1123-019', time: '11:02', who: '周淑珍', meal: '糖醋排骨饭', price: 18.0, subsidy: 4.0, self: 0, pay: 14.0, ch: '线上 · 家属代订', st: '配送中', temp: 62, visit: '—' },
+    { id: 'SK1123-020', time: '11:06', who: '王德林', meal: '香菇滑鸡软饭', price: 15.0, subsidy: 3.0, self: 0, pay: 12.0, ch: '线下 · 网格员代登记', st: '配送中', temp: 63, visit: '—' },
+    { id: 'SK1123-021', time: '11:09', who: '陈秀英', meal: '番茄鸡蛋软饭', price: 10.0, subsidy: 2.0, self: 0, pay: 8.0, ch: '线上 · 代订', st: '待派单', temp: null, visit: '—' }
+  ];
+
+  /* ------------------------------ 异常工单 ------------------------------ */
+
+  SK.exceptions = [
+    {
+      id: 'EX-0921', orderId: 'SK1123-008', who: '刘文彬', addr: '竹荫里 3-3-501',
+      kind: '敲门 3 次无人应答', t: '11:31', state: 'closed', assignee: '王海 · 网格员',
+      result: '确认老人入院（市二院）', act: '订单撤单 · 补贴核销已回滚', span: '8 分钟', over: false
+    },
+    {
+      id: 'EX-0922', orderId: 'SK1123-033', who: '孙凤英', addr: '梅山路 6-2-101',
+      kind: '餐品洒漏（汤汁外溢）', t: '11:38', state: 'open', assignee: '—',
+      result: '', act: '', span: '', over: true
+    }
+  ];
+
+  /* ------------------------------ 消息 ------------------------------ */
+
+  SK.messages = [
+    { id: 'm1', ico: '🔔', cls: '', t: '骑手已出发', b: '李师傅已取餐出发，预计 11:10–11:25 送达。保温箱当前 62℃。', time: '10:52', unread: true, tag: '进行中订单' },
+    { id: 'm2', ico: '✅', cls: '', t: '补贴已到账 ¥5.00', b: '今日民政就餐补贴已发放至你的账户，点补贴套餐时自动抵扣。', time: '09:30', unread: true, tag: '补贴' },
+    { id: 'm3', ico: '🏠', cls: 'blue', t: '网格员王海本周回访 1 次', b: '11月21日 10:20 上门回访，老人开门、状态正常，已记录探访。', time: '11-21', unread: false, tag: '回访' },
+    { id: 'm4', ico: '⚠️', cls: 'red', t: '上周送错餐已处理', b: '11月14日送错餐：补贴已退回，涉事骑手已重新培训。', time: '11-15', unread: false, tag: '售后' },
+    { id: 'm5', ico: '🎁', cls: 'orange', t: '自费加菜 8 折（本周）', b: '签约餐馆自费菜本周 8 折，可与补贴套餐同时下单。', time: '11-20', unread: false, tag: '活动' },
+    { id: 'm6', ico: '👩', cls: '', t: '女儿林思思为你代订', b: '11月22日 11:02 由家属端代订「糖醋排骨饭」，已送达并回访。', time: '11-22', unread: false, tag: '家人' }
+  ];
+
+  /* ------------------------------ 快捷服务 ------------------------------ */
+
+  SK.quick = [
+    { k: '餐', label: '补贴套餐点单', route: 'order' },
+    { k: '选', label: '自费自选', route: 'selfselect' },
+    { k: '代', label: '网格员代登记', route: 'grid' },
+    { k: '补', label: '补贴明细', route: 'subsidy' }
+  ];
+
+  /* ------------------------------ 看板指标 ------------------------------ */
+
+  SK.govStats = {
+    total: 312, subsidy: 1874.0, deliverRate: 98.6, tempRate: 99.2,
+    radiusRate: 100, visitRate: 100, exception: 2, close24h: 100,
+    weeks: [
+      { d: '周一', v: 286 }, { d: '周二', v: 301 }, { d: '周三', v: 274 },
+      { d: '周四', v: 298 }, { d: '周五', v: 312 }, { d: '周六', v: 246 }, { d: '周日', v: 231 }
+    ]
+  };
+})(window);
+</script>
+<script>
+/* ==== assets/store.js ==== */
+/* ==========================================================================
+   食刻 · 暖食一刻  |  store.js —— 状态、领域规则与订单状态机
+   ========================================================================== */
+(function (w) {
+  'use strict';
+  const SK = (w.SK = w.SK || {});
+  const LS_KEY = 'shike_demo_v2';
+
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+
+  /* ------------------------------ 订单流程定义 ------------------------------ */
+
+  SK.STEPS = [
+    { k: 'placed',     t: '已下单 · 支付成功',      d: '补贴已预核销，订单进入街道调度池' },
+    { k: 'accepted',   t: '食堂已接单 · 备餐中',    d: '三里庵社区食堂接单，后厨开始备餐' },
+    { k: 'picked',     t: '出餐完成 · 骑手已取餐',  d: '专职养老配送骑手已取餐，保温箱 62℃' },
+    { k: 'delivering', t: '配送中',                d: '沿推荐路线配送，温控与位置实时回传' },
+    { k: 'arriving',   t: '已到达 · 正在敲门回访',  d: '骑手按“失能 + 需回访”标签执行敲门' },
+    { k: 'done',       t: '已送达 · 回访已记录',    d: '敲门回访已完成，记录写入老人状态卡' }
+  ];
+
+  const seed = () => ({
+    version: 2,
+    seq: 22,
+    quotaTotal: 5.0,
+    quotaLeft: 5.0,
+    quotaUsed: 0.0,
+
+    addrId: 'a1',
+
+    /* 首页「进行中的订单」——对应高保真稿 */
+    activeOrder: {
+      id: 'SK1123-019',
+      mealId: 'ly',
+      mealName: '补贴套餐 · 醋溜鱼片 + 软米饭',
+      shortName: '醋溜鱼片 + 软米饭',
+      price: 18.0, subsidy: 5.0, pay: 13.0, qty: 1,
+      time: '11:10 – 11:25',
+      status: 3,
+      temp: 62,
+      addr: '竹荫里社区 3 号楼 2 单元 401',
+      dist: 620,
+      channel: '线上 · 家属代订',
+      courier: { name: '李师傅', tag: '专职养老配送 · 3 年老骑手', phone: '156****8820' },
+      visit: null,
+      auto: true,
+      created: '10:42'
+    },
+
+    orders: [
+      { id: 'SK1123-016', mealName: '清蒸鲈鱼饭', price: 16, subsidy: 3, pay: 13, time: '10:30 – 10:45', st: '已送达', temp: 64, visit: '开门 · 状态正常', created: '10:22', channel: '线上 · 家属代订' },
+      { id: 'SK1123-012', mealName: '番茄鸡蛋软饭', price: 10, subsidy: 2, pay: 8, time: '11月22日 11:00 – 11:15', st: '已送达', temp: 63, visit: '开门 · 状态正常', created: '11-22 10:18', channel: '线上 · 家属代订' },
+      { id: 'SK1123-007', mealName: '香菇滑鸡软饭', price: 15, subsidy: 3, pay: 12, time: '11月21日 11:05 – 11:20', st: '已送达', temp: 62, visit: '开门 · 需协助', created: '11-21 10:12', channel: '线下 · 网格员代登记' },
+      { id: 'SK1123-003', mealName: '糖醋排骨饭', price: 18, subsidy: 4, pay: 14, time: '11月20日 11:00 – 11:15', st: '已送达', temp: 65, visit: '开门 · 状态正常', created: '11-20 10:05', channel: '线上 · 家属代订' }
+    ],
+
+    cart: {},
+    cartRest: null,
+
+    messages: clone(SK.messages),
+    unread: 2,
+
+    queue: clone(SK.queue).map((q) => ({ ...q, assigned: false, route: q.route })),
+    exceptions: clone(SK.exceptions),
+    ledger: clone(SK.ledger),
+
+    settings: { big: false, voice: false, knock: true, lowSalt: true, soft: true },
+
+    gridSel: SK.gridElders.filter((e) => e.on).map((e) => e.id),
+    gridVoice: '',
+    gridBatch: null,
+
+    opsTab: 'dispatch',
+    ledgerTab: 'all',
+    orderTab: 'all',
+    aiDone: false,
+    demo: { autoPlay: true, tick: 0 }
+  });
+
+  /* ------------------------------ 状态容器 ------------------------------ */
+
+  let state = null;
+
+  const load = () => {
+    try {
+      const raw = w.localStorage.getItem(LS_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s && s.version === 2) return s;
+      }
+    } catch (e) { /* ignore */ }
+    return null;
+  };
+
+  const save = () => {
+    try { w.localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  };
+
+  const store = (SK.store = {
+    get s() { return state; },
+    reset() {
+      state = seed();
+      save();
+    },
+    init() {
+      state = load() || seed();
+      save();
+      return state;
+    },
+    commit(silent) {
+      save();
+      if (!silent && SK.refresh) SK.refresh();
+    }
+  });
+
+  /* 便捷别名：SK.commit() / SK.reset() */
+  SK.commit = function (silent) { store.commit(silent); };
+  SK.reset = function () { store.reset(); };
+
+  /* ------------------------------ 工具 ------------------------------ */
+
+  const money = (n) => (Math.round(n * 100) / 100).toFixed(2);
+  SK.money = money;
+  /* 金额展示：整数不补小数（¥14 / ¥13.5） */
+  SK.yuan = function (n) {
+    const v = Math.round(n * 100) / 100;
+    return Number.isInteger(v) ? String(v) : v.toFixed(2).replace(/0$/, '');
+  };
+
+  const nowStr = () => {
+    const d = new Date();
+    const p = (x) => String(x).padStart(2, '0');
+    return p(d.getHours()) + ':' + p(d.getMinutes());
+  };
+
+  const addWindow = (h, m) => {
+    const p = (x) => String(x).padStart(2, '0');
+    return p(h) + ':' + p(m);
+  };
+
+  SK.etaFor = (status) => {
+    const a = [[11, 10], [11, 25]];
+    if (status >= 5) return '已送达';
+    if (status >= 4) return '正在送达';
+    return '11:10 – 11:25';
+  };
+
+  SK.statusOf = (order) => {
+    const st = SK.STEPS[order.status] || SK.STEPS[0];
+    return st;
+  };
+
+  /* ------------------------------ 消息 ------------------------------ */
+
+  SK.pushMsg = function (ico, title, body, tag, cls) {
+    state.messages.unshift({
+      id: 'm' + Date.now() + Math.random().toString(16).slice(2, 6),
+      ico, t: title, b: body, tag: tag || '系统', cls: cls || '',
+      time: nowStr(), unread: true
+    });
+    state.unread = state.messages.filter((m) => m.unread).length + 1;
+    state.unread = state.messages.filter((m) => m.unread).length;
+  };
+
+  /* ------------------------------ 补贴 ------------------------------ */
+
+  /* 返回本单实际抵扣额（受今日额度约束） */
+  SK.calcSubsidy = function (mealSubsidy) {
+    const left = Math.max(0, state.quotaLeft);
+    return Math.min(mealSubsidy, left);
+  };
+
+  SK.spendSubsidy = function (amt) {
+    const use = Math.min(amt, state.quotaLeft);
+    state.quotaLeft = Math.round((state.quotaLeft - use) * 100) / 100;
+    state.quotaUsed = Math.round((state.quotaTotal - state.quotaLeft) * 100) / 100;
+    return use;
+  };
+
+  SK.myTierInfo = function () {
+    return SK.tiers.find((t) => t.k === SK.myTier) || SK.tiers[0];
+  };
+
+  /* ------------------------------ 半径校验 ------------------------------ */
+
+  SK.checkAddr = function (addr) {
+    const R = 1500; // 15 分钟便民生活圈有效半径（米）
+    if (addr.distance <= R) return { ok: true, R, msg: '在助餐点上门范围内（≤ ' + R + ' 米）' };
+    return { ok: false, R, msg: '超出上门半径，建议到集中取餐点自取或预约流动餐车' };
+  };
+
+  /* ------------------------------ 下单 ------------------------------ */
+
+  SK.placeOrder = function (opt) {
+    const meal = SK.meals.find((m) => m.id === opt.mealId) || SK.meals[0];
+    const addr = SK.addresses.find((a) => a.id === (opt.addrId || state.addrId)) || SK.addresses[0];
+    const qty = opt.qty || 1;
+    const price = meal.price * qty;
+    const wantSub = meal.subsidy * qty;
+    const realSub = SK.spendSubsidy(wantSub);
+    const pay = Math.round((price - realSub) * 100) / 100;
+
+    state.seq += 1;
+    const id = 'SK1123-' + String(state.seq).padStart(3, '0');
+
+    const order = {
+      id,
+      mealId: meal.id,
+      mealName: '补贴套餐 · ' + meal.name,
+      shortName: meal.name,
+      price,
+      subsidy: realSub,
+      subsidyWant: wantSub,
+      pay,
+      qty,
+      time: '11:10 – 11:25',
+      status: 0,
+      temp: 0,
+      addr: addr.detail,
+      dist: addr.distance,
+      channel: '线上 · 家属代订',
+      courier: { name: '李师傅', tag: '专职养老配送 · 3 年老骑手', phone: '156****8820' },
+      visit: null,
+      auto: true,
+      created: nowStr(),
+      opts: {
+        soft: opt.soft, lessSalt: opt.lessSalt, lessOil: opt.lessOil,
+        allergy: opt.allergy || [], note: opt.note || '',
+        knock: !!opt.knock, selfPick: !!addr.selfPick, payMethod: opt.payMethod || 'wechat'
+      }
+    };
+
+    state.activeOrder = order;
+
+    /* 主账 / 台账 */
+    state.ledger.unshift({
+      id, time: nowStr(), who: SK.elder.name, meal: meal.name,
+      price, subsidy: realSub, self: 0, pay, ch: '线上 · 家属代订',
+      st: '待派单', temp: null, visit: '—'
+    });
+
+    /* 调度队列 */
+    state.queue.unshift({
+      id, who: SK.elder.name, addr: '竹荫里 3-2-401', dist: addr.distance,
+      tags: (opt.knock ? ['失能', '敲门回访'] : ['失能']).concat(opt.lessSalt ? ['低盐'] : []),
+      meal: meal.name, route: addr.distance > 1200 ? 'third' : 'full', urgent: 0, assigned: false, isNew: true
+    });
+
+    SK.pushMsg('🍚', '下单成功 · 补贴已抵扣 ¥' + money(realSub),
+      meal.name + ' ×' + qty + '，实付 ¥' + money(pay) + '。订单已进入街道调度池，预计 11:10–11:25 送达。', '订单');
+
+    save();
+    return order;
+  };
+
+  /* ------------------------------ 自费购物车 ------------------------------ */
+
+  SK.cartCount = function () {
+    return Object.values(state.cart).reduce((a, b) => a + b, 0);
+  };
+  SK.cartTotal = function () {
+    let sum = 0;
+    SK.restaurants.forEach((r) => r.dishes.forEach((d) => {
+      const q = state.cart[d.id] || 0;
+      sum += q * d.price;
+    }));
+    return sum;
+  };
+  SK.cartLines = function () {
+    const out = [];
+    SK.restaurants.forEach((r) => r.dishes.forEach((d) => {
+      const q = state.cart[d.id] || 0;
+      if (q > 0) out.push({ r, d, q });
+    }));
+    return out;
+  };
+  SK.addDish = function (id) {
+    state.cart[id] = (state.cart[id] || 0) + 1;
+    SK.commit();
+  };
+  SK.subDish = function (id) {
+    if (!state.cart[id]) return;
+    state.cart[id] -= 1;
+    if (state.cart[id] <= 0) delete state.cart[id];
+    SK.commit();
+  };
+
+  SK.placeSelfOrder = function (payMethod) {
+    const lines = SK.cartLines();
+    if (!lines.length) return null;
+    const total = SK.cartTotal();
+    state.seq += 1;
+    const id = 'SK1123-' + String(state.seq).padStart(3, '0');
+    const mealName = lines.map((l) => l.d.name + '×' + l.q).join(' + ');
+
+    state.orders.unshift({
+      id, mealName, price: total, subsidy: 0, pay: total,
+      time: '约 40 分钟内 · 11:55 前',
+      st: '待派单', temp: null, visit: '—', created: nowStr(),
+      channel: '线上 · 自费自选'
+    });
+    state.ledger.unshift({
+      id, time: nowStr(), who: SK.elder.name, meal: mealName,
+      price: total, subsidy: 0, self: total, pay: total,
+      ch: '线上 · 自费自选', st: '待派单', temp: null, visit: '—'
+    });
+    state.queue.unshift({
+      id, who: SK.elder.name, addr: '竹荫里 3-2-401', dist: 620,
+      tags: ['自费单', '明码标价'], meal: mealName, route: 'third', urgent: 0, assigned: false, isNew: true
+    });
+    SK.pushMsg('🛵', '自费订单已提交', mealName + '，合计 ¥' + money(total) + '。按市场化运力调配，承诺 40 分钟内送达。', '订单', 'orange');
+    state.cart = {};
+    save();
+    return id;
+  };
+
+  /* ------------------------------ 订单状态机 ------------------------------ */
+
+  SK.advanceOrder = function (order, silent) {
+    if (!order || order.status >= SK.STEPS.length - 1) return;
+    order.status += 1;
+
+    if (order.status === 1) {
+      order.temp = 0;
+      SK.pushMsg('🍳', '食堂已接单', '三里庵社区食堂已接单，后厨开始备餐。预计 11:00 前出餐。', '订单');
+    } else if (order.status === 2) {
+      order.temp = 62;
+      SK.pushMsg('🛵', '骑手已取餐出发', '李师傅已取餐，保温箱 62℃。预计 11:10–11:25 送达。', '订单');
+    } else if (order.status === 3) {
+      order.temp = 62;
+      SK.pushMsg('🌡️', '温控回传 62℃', '保温箱温度持续 ≥60℃，本次回传已留痕，可作争议凭证。', '温控');
+    } else if (order.status === 4) {
+      SK.pushMsg('🚪', '骑手已到达，正在敲门', '按“失能 + 需敲门回访”标签执行，请稍候。', '订单');
+    } else if (order.status === 5) {
+      order.temp = 63;
+      order.visit = { open: '老人开门', mood: '状态正常', need: '无', t: nowStr(), by: '李师傅 · 专职配送' };
+      SK.pushMsg('✅', '已送达 · 回访已记录', '11:15 敲门回访：老人开门、状态正常、无需协助。记录已写入老人状态卡。', '回访');
+      const led = state.ledger.find((l) => l.id === order.id);
+      if (led) { led.st = '已送达'; led.temp = order.temp; led.visit = '开门 · 状态正常'; }
+      const q = state.queue.find((x) => x.id === order.id);
+      if (q) q.assigned = true;
+    }
+    if (!silent) { save(); if (SK.refresh) SK.refresh(); }
+  };
+
+  /* 自动演示时钟：每 5 秒推进一步（首页/追踪页可见） */
+  let timer = null;
+  SK.startClock = function () {
+    if (timer) return;
+    timer = setInterval(() => {
+      state = store.s;
+      const o = state.activeOrder;
+      if (!o) return;
+      if (!state.demo.autoPlay) return;
+      if (o.status >= 5) return;
+      state.demo.tick += 1;
+      if (o.status >= 3 && o.status < 5) {
+        o.temp = 62 + Math.min(2, Math.floor(state.demo.tick / 4));
+      }
+      if (state.demo.tick % 6 === 0) {
+        SK.advanceOrder(o, true);
+        save();
+        if (SK.refreshSoft) SK.refreshSoft();
+      }
+    }, 1000);
+  };
+
+  /* ------------------------------ 调度中枢 ------------------------------ */
+
+  SK.queueStats = function () {
+    const q = state.queue;
+    const pending = q.filter((x) => !x.assigned);
+    const by = { full: 0, third: 0, vol: 0 };
+    pending.forEach((x) => { by[x.route] = (by[x.route] || 0) + 1; });
+    return {
+      total: q.length,
+      pending: pending.length,
+      assigned: q.length - pending.length,
+      full: by.full, third: by.third, vol: by.vol,
+      urgent: pending.filter((x) => x.urgent).length
+    };
+  };
+
+  SK.confirmAll = function () {
+    const pending = state.queue.filter((x) => !x.assigned);
+    if (!pending.length) return 0;
+    pending.forEach((x) => { x.assigned = true; });
+    state.aiDone = true;
+    const s = SK.queueStats();
+    state.ledger.forEach((l) => { if (l.st === '待派单') l.st = '配送中'; });
+    SK.pushMsg('📤', '派单已下发', pending.length + ' 单已下发：专职 ' + s.full + ' / 第三方 ' + s.third + ' / 志愿 ' + s.vol + '。全程留痕。', '调度');
+    save();
+    return pending.length;
+  };
+
+  SK.reassignOne = function (id, route, reason) {
+    const x = state.queue.find((q) => q.id === id);
+    if (!x) return;
+    x.route = route;
+    x.assigned = false;
+    x.reassigned = reason;
+    SK.pushMsg('🔁', '改派留痕', id + ' 改派至「' + SK.routeName(route) + '」，原因：' + reason, '调度');
+    save();
+  };
+
+  SK.routeName = (r) => ({ full: '专职养老配送', third: '第三方即时配送', vol: '网格员 / 志愿者' }[r] || r);
+
+  /* ------------------------------ 异常工单 ------------------------------ */
+
+  SK.createException = function (orderId, who, addr, kind) {
+    const n = state.exceptions.length + 1;
+    const id = 'EX-09' + String(20 + n);
+    const ex = {
+      id, orderId: orderId || 'SK1123-0' + (60 + n), who, addr, kind,
+      t: nowStr(), state: 'open', assignee: '—', result: '', act: '', span: '', over: true
+    };
+    state.exceptions.unshift(ex);
+    const led = state.ledger.find((l) => l.id === ex.orderId);
+    if (led) led.st = '异常挂起';
+    if (state.activeOrder && state.activeOrder.id === ex.orderId) state.activeOrder.status = 4;
+    SK.pushMsg('⚠️', '异常工单已生成', id + '：' + who + ' · ' + kind + '。补贴核销已挂起，等待网格员上门。', '异常', 'red');
+    save();
+    return ex;
+  };
+
+  SK.assignException = function (id) {
+    const ex = state.exceptions.find((e) => e.id === id);
+    if (!ex) return;
+    ex.assignee = '王海 · 网格员（距老人 620m）';
+    ex.state = 'assigned';
+    ex.tAssigned = nowStr();
+    SK.pushMsg('🏃', '异常工单已派给网格员', ex.id + ' 已指派王海，要求 10 分钟内上门。', '异常', 'red');
+    save();
+  };
+
+  SK.closeException = function (id, result) {
+    const ex = state.exceptions.find((e) => e.id === id);
+    if (!ex) return;
+    ex.state = 'closed';
+    ex.result = result;
+    ex.span = '7 分钟';
+    ex.over = false;
+    const rollback = result === '确认老人入院' || result === '确认老人外出';
+    ex.act = rollback ? '订单撤单 · 补贴核销已回滚' : '已补送 · 补贴核销保留';
+    const led = state.ledger.find((l) => l.id === ex.orderId);
+    if (led) {
+      led.st = rollback ? '已撤单（回滚）' : '已送达';
+      led.visit = result;
+    }
+    if (state.activeOrder && state.activeOrder.id === ex.orderId) {
+      state.activeOrder.status = 5;
+      state.activeOrder.visit = { open: result, mood: '由网格员确认', need: rollback ? '订单已撤单' : '已补送', t: nowStr(), by: '王海 · 网格员' };
+    }
+    SK.pushMsg('✅', '异常已闭环', ex.id + '：' + result + '。' + ex.act + '。台账已标注原因码，24 小时内留痕。', '异常');
+    save();
+  };
+
+  /* ------------------------------ 台账 / 看板 ------------------------------ */
+
+  SK.ledgerTotals = function () {
+    const L = state.ledger;
+    const subsidy = L.reduce((a, b) => a + (b.subsidy || 0), 0);
+    const self = L.reduce((a, b) => a + (b.self || 0), 0);
+    const pay = L.reduce((a, b) => a + (b.pay || 0), 0);
+    return { subsidy, self, pay, count: L.length };
+  };
+
+  SK.govNow = function () {
+    const t = SK.ledgerTotals();
+    const q = SK.queueStats();
+    return {
+      total: 300 + t.count,
+      subsidy: 1800 + t.subsidy,
+      dispatch: q.assigned,
+      pending: q.pending,
+      exceptions: state.exceptions.filter((e) => e.state !== 'closed').length,
+      closed: state.exceptions.filter((e) => e.state === 'closed').length
+    };
+  };
+
+  /* ------------------------------ 导出 ------------------------------ */
+
+  SK.exportLedger = function () {
+    const head = ['订单号', '时间', '老人', '餐品', '餐品原价', '民政补贴', '自费金额', '实付', '渠道', '状态', '送达温控(℃)', '回访结论'];
+    const rows = state.ledger.map((l) => [
+      l.id, l.time, l.who, l.meal, money(l.price), money(l.subsidy), money(l.self), money(l.pay),
+      l.ch, l.st, l.temp == null ? '' : l.temp, l.visit
+    ]);
+    const csv = '\ufeff' + [head, ...rows].map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '食刻_民政助餐台账_' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    SK.pushMsg('📄', '台账已导出', '补贴 / 自费双账目对清单已生成，包含温控与回访结论，可直接交民政核对。', '台账');
+    save();
+  };
+})(window);
+</script>
+<script>
+/* ==== assets/ui.js ==== */
+/* ==========================================================================
+   食刻 · 暖食一刻  |  ui.js —— 图标、装饰图形、浮层与通用组件
+   ========================================================================== */
+(function (w) {
+  'use strict';
+  const SK = (w.SK = w.SK || {});
+
+  /* ------------------------------ 基础工具 ------------------------------ */
+
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+  SK.esc = esc;
+
+  SK.el = function (html) {
+    const t = document.createElement('template');
+    t.innerHTML = String(html).trim();
+    return t.content.firstElementChild;
+  };
+  SK.$ = (sel, root) => (root || document).querySelector(sel);
+  SK.$$ = (sel, root) => Array.prototype.slice.call((root || document).querySelectorAll(sel));
+
+  SK.frame = () => document.getElementById('frame');
+  SK.app = () => document.getElementById('app');
+
+  /* ------------------------------ 图标（填充，用于 Tab） ------------------------------ */
+
+  const FILLED = {
+    home: '<rect x="6" y="4.2" width="12" height="2.5" rx="1.1"/><rect x="7.6" y="8.4" width="8.8" height="11.2" rx="1.4"/>',
+    list: '<rect x="4" y="5.6" width="16" height="1.9" rx=".95"/><rect x="4" y="10.9" width="16" height="1.9" rx=".95"/><rect x="4" y="16.2" width="16" height="1.9" rx=".95"/>',
+    chat: '<path d="M2.6 13.4c3.1.5 3.5-3.9 6.5-3.9s3.4 4.4 6.5 4.4c2.1 0 3.2-1.7 5.8-2.3v4.6c0 1.5-1.2 2.7-2.7 2.7H5.3c-1.5 0-2.7-1.2-2.7-2.7z"/>',
+    user: '<circle cx="12" cy="8.1" r="3.5"/><path d="M4.6 19.8c0-3.6 3.3-5.9 7.4-5.9s7.4 2.3 7.4 5.9z"/>',
+    bell: '<path d="M12 3.2a5.6 5.6 0 0 0-5.6 5.6v3.1L4.8 15h14.4l-1.6-3.1V8.8A5.6 5.6 0 0 0 12 3.2zm0 17.2a2.3 2.3 0 0 0 2.2-1.6H9.8A2.3 2.3 0 0 0 12 20.4z"/>',
+    grid: '<rect x="3.6" y="3.6" width="7" height="7" rx="1.6"/><rect x="13.4" y="3.6" width="7" height="7" rx="1.6"/><rect x="3.6" y="13.4" width="7" height="7" rx="1.6"/><rect x="13.4" y="13.4" width="7" height="7" rx="1.6"/>',
+    chart: '<rect x="3.6" y="12" width="4" height="8.4" rx="1.2"/><rect x="10" y="7.4" width="4" height="13" rx="1.2"/><rect x="16.4" y="3.6" width="4" height="16.8" rx="1.2"/>',
+    doc: '<path d="M6 2.6h7.4l5 5v12.4c0 .8-.6 1.4-1.4 1.4H7.4c-.8 0-1.4-.6-1.4-1.4V4c0-.8.6-1.4 1.4-1.4z" opacity=".95"/><path d="M13.4 2.6v5h5" fill="#fff" opacity=".55"/>'
+  };
+
+  /* ------------------------------ 图标（线性） ------------------------------ */
+
+  const LINE = {
+    back: '<path d="M15 5.5 8.5 12 15 18.5"/>',
+    arrow: '<path d="M4.5 12h14M13 6.5 18.5 12 13 17.5"/>',
+    plus: '<path d="M12 5.5v13M5.5 12h13"/>',
+    minus: '<path d="M5.5 12h13"/>',
+    check: '<path d="m5.5 12.5 4.2 4.2 8.8-9.4"/>',
+    clock: '<circle cx="12" cy="12" r="8.2"/><path d="M12 7.4V12l3.2 2"/>',
+    temp: '<path d="M10.5 13.4V5.6a1.8 1.8 0 1 1 3.6 0v7.8a3.4 3.4 0 1 1-3.6 0z"/><path d="M12.3 9.4v5"/>',
+    ruler: '<circle cx="12" cy="12" r="8.2"/><path d="M12 12 12 4.4M12 12l5.4 5.4"/>',
+    door: '<path d="M5.4 20.4V4.6c0-.8.6-1.4 1.4-1.4h7.6c.8 0 1.4.6 1.4 1.4v15.8"/><path d="M3.4 20.4h17.2M12.9 12.4h.02"/>',
+    phone: '<path d="M6.2 3.8h3l1.5 3.7-1.9 1.4a11.2 11.2 0 0 0 5.3 5.3l1.4-1.9 3.7 1.5v3a1.6 1.6 0 0 1-1.8 1.6A16.4 16.4 0 0 1 4.6 5.6a1.6 1.6 0 0 1 1.6-1.8z"/>',
+    pin: '<path d="M12 21c4.2-4.6 6.4-7.8 6.4-10.4A6.4 6.4 0 0 0 5.6 10.6C5.6 13.2 7.8 16.4 12 21z"/><circle cx="12" cy="10.4" r="2.3"/>',
+    persons: '<circle cx="9" cy="8" r="3.2"/><path d="M3.4 19.4c0-3.1 2.6-5.2 5.6-5.2s5.6 2.1 5.6 5.2"/><path d="M16 5.2a3 3 0 0 1 0 5.8M17.2 14.6c2 .5 3.4 2.2 3.4 4.8"/>',
+    alert: '<path d="M12 4.2 21 19.6H3z"/><path d="M12 9.6v4.4M12 17h.02"/>',
+    download: '<path d="M12 4.4v10.2M7.8 10.8 12 15l4.2-4.2"/><path d="M4.6 18.6h14.8"/>',
+    refresh: '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4.4v4.2h-4.2"/>',
+    mic: '<rect x="9.4" y="3.4" width="5.2" height="10" rx="2.6"/><path d="M5.8 11.4a6.2 6.2 0 0 0 12.4 0M12 17.6v3"/>',
+    edit: '<path d="M4.4 19.6h4l10-10a2 2 0 0 0-2.8-2.8l-10 10z"/><path d="M13.6 7.6l2.8 2.8"/>',
+    shield: '<path d="M12 3.2 5 6v6c0 4.2 3 7.2 7 8.8 4-1.6 7-4.6 7-8.8V6z"/>',
+    spark: '<path d="M12 3.4 13.9 9l5.6 1.9-5.6 1.9L12 18.4 10.1 12.8 4.5 10.9 10.1 9z"/>',
+    scan: '<path d="M4 8.4V5.6c0-.9.7-1.6 1.6-1.6h2.8M20 8.4V5.6c0-.9-.7-1.6-1.6-1.6h-2.8M4 15.6v2.8c0 .9.7 1.6 1.6 1.6h2.8M20 15.6v2.8c0 .9-.7 1.6-1.6 1.6h-2.8"/><path d="M4 12h16"/>',
+    close: '<path d="M6 6.2 17.8 18M17.8 6.2 6 18"/>',
+    wave: '<path d="M3 14c3.2 0 3.6-4.4 6.6-4.4S13 14 16 14s3.4-3.4 5-3.4"/>'
+  };
+
+  SK.icon = function (name, size, cls) {
+    size = size || 22;
+    const body = FILLED[name] || LINE[name] || '';
+    return '<svg class="' + (cls || '') + '" width="' + size + '" height="' + size +
+      '" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' + body + '</svg>';
+  };
+
+  SK.line = function (name, size, sw) {
+    size = size || 20;
+    const body = LINE[name] || FILLED[name] || '';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="' + (sw || 1.7) + '" stroke-linecap="round" ' +
+      'stroke-linejoin="round" aria-hidden="true">' + body + '</svg>';
+  };
+
+  /* ------------------------------ 装饰图形 ------------------------------ */
+
+  /* 首页问候横幅（对应高保真稿的有机「叶形」票据） */
+  SK.art = {
+    greet(big) {
+      const mint = '#ADE2C9';
+      return '<svg viewBox="0 0 353 160" preserveAspectRatio="xMidYMin meet" aria-hidden="true">' +
+        /* 主体绿票 */
+        '<path d="M10 62C10 46 15.5 40 24 40c6.5 0 11 4.6 11.5 12.3H337c4.4 0 8 3.6 8 8v77.7H10z" fill="#27A76B"/>' +
+        '<path d="M10 62C10 46 15.5 40 24 40c6.5 0 11 4.6 11.5 12.3H337c4.4 0 8 3.6 8 8v77.7H10z" fill="url(#gg)" opacity=".35"/>' +
+        '<defs><linearGradient id="gg" x1="0" y1="40" x2="353" y2="150" gradientUnits="userSpaceOnUse">' +
+        '<stop offset="0" stop-color="#38B87C"/><stop offset="1" stop-color="#1F8B5A"/></linearGradient></defs>' +
+        /* 深绿底带 */
+        '<path d="M10 129.5C70 131.6 200 132.8 345 132.6v5H10z" fill="#1C6B4C"/>' +
+        '<path d="M10 129.5C70 131.6 200 132.8 345 132.6v5H10z" fill="#1C6B4C"/>' +
+        /* 左下深绿小半圆 */
+        '<circle cx="25" cy="131" r="11.5" fill="#1C6B4C"/>' +
+        /* 右下悬垂半圆 */
+        '<ellipse cx="322" cy="137.6" rx="23" ry="12.4" fill="#1C6B4C"/>' +
+        /* 底部浅色细条 */
+        '<rect x="8" y="136.4" width="339" height="1.8" rx=".9" fill="#EBFFF4" opacity=".8"/>' +
+        /* 装饰圆（置于绿票之上） */
+        '<circle cx="296" cy="40" r="39" fill="' + mint + '" opacity=".36"/>' +
+        '<circle cx="326" cy="83" r="21" fill="#FFFFFF" opacity=".2"/>' +
+        /* 立即点餐云形白底 */
+        '<g fill="#FFFFFF"><circle cx="277" cy="84" r="13"/><circle cx="300" cy="80" r="14.5"/>' +
+        '<circle cx="323" cy="85" r="11.5"/><rect x="273" y="76" width="52" height="19" rx="9.5"/></g>' +
+        '</svg>';
+    },
+
+    /* 服务承诺浅绿飘带 */
+    promise() {
+      return '<svg viewBox="0 0 335 29" preserveAspectRatio="none" aria-hidden="true">' +
+        '<path d="M2 9.5C2 4.4 6.4 1 12 1h311c5.6 0 10 3.4 10 8.5v14H2z" fill="#DFF3E8"/>' +
+        '<path d="M2 23.5V13c0-2.6 2-4.6 4.6-4.6S11.2 10.4 11.2 13c0-2.6 2-4.6 4.6-4.6" fill="none"/>' +
+        '<circle cx="4.5" cy="15" r="9" fill="#DFF3E8"/>' +
+        '<circle cx="330" cy="22" r="12" fill="#E8F7EF"/>' +
+        '</svg>';
+    },
+
+    /* 云形白底（页内装饰） */
+    cloud() {
+      return '<svg viewBox="0 0 120 60" aria-hidden="true"><g fill="currentColor">' +
+        '<circle cx="34" cy="34" r="17"/><circle cx="62" cy="27" r="21"/><circle cx="90" cy="35" r="15"/>' +
+        '<rect x="30" y="26" width="64" height="24" rx="12"/></g></svg>';
+    }
+  };
+
+  /* ------------------------------ 状态栏 ------------------------------ */
+
+  SK.ui = {
+    statusbar() {
+      const d = new Date();
+      const t = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      return '<div class="statusbar">' +
+        '<div class="sb-clock">' + t + '</div>' +
+        '<div class="sb-right">' +
+        '<svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor">' +
+        '<rect x="0" y="7.4" width="3" height="3.6" rx="1"/><rect x="4.6" y="5.2" width="3" height="5.8" rx="1"/>' +
+        '<rect x="9.2" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.8" y="0" width="3" height="11" rx="1"/></svg>' +
+        '<span class="sb-batt"><i></i><b></b></span>' +
+        '</div></div>';
+    },
+
+    tabbar(active, unread) {
+      const tabs = [
+        { k: 'home', n: 'home', l: '首页' },
+        { k: 'orders', n: 'list', l: '订单' },
+        { k: 'messages', n: 'chat', l: '消息' },
+        { k: 'profile', n: 'user', l: '我的' }
+      ];
+      return '<nav class="tabbar">' + tabs.map((t) => {
+        const on = active === t.k;
+        return '<button class="tab' + (on ? ' on' : '') + '" data-go="' + t.k + '" aria-label="' + t.l + '">' +
+          SK.icon(t.n, on ? 21 : 20) +
+          '<span class="tlabel">' + t.l + '</span>' +
+          (t.k === 'messages' && unread > 0 ? '<span class="badge">' + unread + '</span>' : '') +
+          '</button>';
+      }).join('') + '</nav>';
+    },
+
+    topbar(title, opts) {
+      opts = opts || {};
+      const back =
+        '<button class="backpill" data-back="1" aria-label="返回上一级">' +
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+        'stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5.5 8.5 12 15 18.5"/></svg>' +
+        '<span>返回</span></button>';
+      return '<div class="topbar">' +
+        (opts.noBack ? '' : back) +
+        '<div class="tb-title' + (opts.noBack ? ' no-back' : '') + '">' + esc(title) + '</div>' +
+        (opts.right || (opts.noBack ? '' : '<span class="back-spacer"></span>')) +
+        '</div>';
+    },
+
+    card(html, cls) { return '<div class="card pad ' + (cls || '') + '">' + html + '</div>'; },
+
+    sec(title, more, moreGo) {
+      return '<div class="sec-title"><h2>' + esc(title) + '</h2>' +
+        (more ? '<button class="more" data-go="' + (moreGo || '') + '">' + esc(more) + SK.icon('arrow', 11) + '</button>' : '') +
+        '</div>';
+    }
+  };
+
+  /* ------------------------------ 浮层 ------------------------------ */
+
+  const layer = () => SK.frame();
+
+  SK.toast = function (msg, ico) {
+    const f = layer();
+    const old = f.querySelector('.toast');
+    if (old) old.remove();
+    const t = SK.el('<div class="toast">' +
+      (ico ? '<span class="t-ico">' + ico + '</span>' : '') +
+      '<span>' + esc(msg) + '</span></div>');
+    f.appendChild(t);
+    clearTimeout(SK._toastT);
+    SK._toastT = setTimeout(() => {
+      t.classList.add('out');
+      setTimeout(() => t.remove(), 280);
+    }, 2100);
+  };
+
+  SK.ui.sheet = function (opts) {
+    const f = layer();
+    const wrap = SK.el('<div class="sheet-wrap"><div class="sheet">' +
+      '<div class="sheet-head"><h3>' + esc(opts.title) + '</h3>' +
+      '<button class="x" data-close="1">' + SK.line('close', 15, 2) + '</button></div>' +
+      '<div class="sheet-body">' + (opts.body || '') + '</div>' +
+      (opts.foot ? '<div class="sheet-foot">' + opts.foot + '</div>' : '') +
+      '</div></div>');
+    f.appendChild(wrap);
+    const close = () => {
+      wrap.style.animation = 'fadeIn .18s reverse both';
+      const s = wrap.querySelector('.sheet');
+      if (s) s.style.animation = 'sheetUp .2s reverse both';
+      setTimeout(() => wrap.remove(), 190);
+    };
+    wrap.addEventListener('click', (e) => {
+      if (e.target === wrap || e.target.closest('[data-close]')) close();
+      if (opts.onClick) opts.onClick(e, close);
+    });
+    if (opts.after) opts.after(wrap, close);
+    return { wrap, close };
+  };
+
+  SK.ui.modal = function (opts) {
+    const f = layer();
+    const acts = (opts.actions || [{ t: '知道了' }]).map((a, i) =>
+      '<button class="btn ' + (a.cls || (i === 0 ? '' : 'ghost')) + '" data-i="' + i + '">' + esc(a.t) + '</button>'
+    ).join('');
+    const wrap = SK.el('<div class="modal-wrap"><div class="modal">' +
+      (opts.title ? '<h3>' + esc(opts.title) + '</h3>' : '') +
+      (opts.html || ('<p>' + esc(opts.text || '') + '</p>')) +
+      '<div class="m-actions">' + acts + '</div></div></div>');
+    f.appendChild(wrap);
+    wrap.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-i]');
+      if (b) {
+        const a = (opts.actions || [{}])[Number(b.dataset.i)];
+        wrap.remove();
+        if (a && a.fn) a.fn();
+      }
+      if (e.target === wrap && opts.dismiss !== false) wrap.remove();
+    });
+    return wrap;
+  };
+
+  SK.confirm = function (title, text, okTxt, cancelTxt) {
+    return new Promise((res) => {
+      SK.ui.modal({
+        title, text,
+        actions: [
+          { t: okTxt || '确定', fn: () => res(true) },
+          { t: cancelTxt || '取消', cls: 'ghost', fn: () => res(false) }
+        ]
+      });
+    });
+  };
+
+  /* 底部动作列表 */
+  SK.ui.actionSheet = function (title, items) {
+    return new Promise((res) => {
+      const f = layer();
+      const wrap = SK.el('<div class="sheet-wrap"><div class="sheet">' +
+        '<div class="sheet-head"><h3>' + esc(title) + '</h3>' +
+        '<button class="x" data-close="1">' + SK.line('close', 15, 2) + '</button></div>' +
+        '<div class="sheet-body">' + items.map((it, i) =>
+          '<button class="mi" data-i="' + i + '" style="width:100%;text-align:left">' +
+          '<span class="mi-ico">' + (it.ico || '•') + '</span>' +
+          '<span class="mi-l">' + esc(it.t) + (it.s ? '<small>' + esc(it.s) + '</small>' : '') + '</span>' +
+          '</button>').join('') +
+        '</div></div></div>');
+      f.appendChild(wrap);
+      wrap.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-i]');
+        if (b) {
+          const i = Number(b.dataset.i);
+          wrap.remove();
+          res(items[i]);
+        } else if (e.target === wrap || e.target.closest('[data-close]')) {
+          wrap.remove();
+          res(null);
+        }
+      });
+    });
+  };
+
+  /* 语音播报（可降级） */
+  SK.speak = function (text) {
+    if (!SK.store.s.settings.voice) return;
+    try {
+      if (!w.speechSynthesis) return;
+      w.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'zh-CN';
+      u.rate = 0.9;
+      w.speechSynthesis.speak(u);
+    } catch (e) { /* ignore */ }
+  };
+
+  /* 事件委托 */
+  SK.bind = function (root, sel, ev, fn) {
+    root.addEventListener(ev, (e) => {
+      const t = e.target.closest(sel);
+      if (t && root.contains(t)) fn(e, t);
+    });
+  };
+})(window);
+</script>
+<script>
+/* ==== assets/screens-user.js ==== */
+﻿/* ==========================================================================
+   食刻 · 暖食一刻  |  screens-user.js —— 首页 / 订单 / 消息 / 我的 / 补贴明细
+   ========================================================================== */
+(function (w) {
+  'use strict';
+  const SK = w.SK;
+  const esc = SK.esc;
+  const S = (SK.screens = SK.screens || {});
+
+  const greetWord = () => {
+    const h = new Date().getHours();
+    if (h < 10) return '早上好';
+    if (h < 14) return '中午好';
+    if (h < 18) return '下午好';
+    return '晚上好';
+  };
+
+  const statusInfo = (st) => {
+    if (st >= 5) return { t: '已送达', cls: '' };
+    if (st === 4) return { t: '回访中', cls: '' };
+    if (st === 3) return { t: '配送中', cls: '' };
+    if (st === 2) return { t: '已取餐', cls: '' };
+    if (st === 1) return { t: '备餐中', cls: '' };
+    return { t: '已下单', cls: '' };
+  };
+
+  /* ============================== 首页 ============================== */
+
+  S.home = function () {
+    const s = SK.store.s;
+    const a = s.activeOrder;
+    const quotaTip = s.quotaUsed > 0
+      ? '今日补贴余额 ¥' + SK.money(s.quotaLeft) + ' · 可直接抵扣'
+      : '今日补贴已到账 ¥' + SK.money(s.quotaTotal) + ' · 可直接抵扣';
+
+    /* —— 进行中的订单 —— */
+    let orderCard = '';
+    if (a) {
+      const si = statusInfo(a.status);
+      const pct = [6, 22, 44, 66, 86, 100][a.status];
+      const tempTxt = a.status >= 2 ? '温控 ' + (a.temp || 62) + '℃' : '温控 保温箱';
+      orderCard = '<div class="ordercard" data-go="track" data-id="' + a.id + '">' +
+        '<div class="oc-head"><h3>进行中的订单</h3>' +
+        '<span class="oc-status"><i class="pulse"></i>' + si.t + '</span></div>' +
+        '<div class="oc-name">' + esc(a.mealName) + '</div>' +
+        '<div class="oc-tags">' + (a.status >= 5 ? '回访已记录 · 补贴已核销' : '低盐 · 少油 · 软食') + '</div>' +
+        '<div class="oc-eta"><span class="lb">' + (a.status >= 5 ? '送达时间' : '预计送达') + '</span><b>' + esc(a.time) + '</b></div>' +
+        '<div class="oc-chips">' +
+        '<div class="oc-chip"><span>' + tempTxt + '</span></div>' +
+        '<div class="oc-chip"><span>半径 ' + a.dist + 'm</span></div>' +
+        '<div class="oc-chip"><span>' + (a.visit ? '回访：' + esc(a.visit.open) : '敲门回访') + '</span></div>' +
+        '</div>' +
+        '<div class="oc-prog"><i style="width:' + pct + '%"></i></div>' +
+        '</div>';
+    } else {
+      orderCard = '<div class="ordercard"><div class="oc-head"><h3>进行中的订单</h3></div>' +
+        '<div class="oc-name" style="color:#96A69C;font-size:13.5px">今天还没有订单</div>' +
+        '<div class="oc-tags">点一份补贴套餐，11:30 前就能吃上热饭</div>' +
+        '<button class="btn sm mt12" data-go="order">立即点餐</button></div>';
+    }
+
+    const meals = SK.meals.slice(0, 3).map((m, i) =>
+      '<div class="meal" data-go="meal" data-id="' + m.id + '">' +
+      '<div class="meal-main">' +
+      '<div class="meal-name">' + esc(m.name) + '</div>' +
+      '<div class="meal-price"><span class="meal-now">补贴后<b>¥' + m.net + '</b></span>' +
+      '<span class="meal-old">原价 <i>¥' + m.price + '</i></span></div>' +
+      '<div class="meal-tag">' + esc(m.tag) + '</div></div>' +
+      '<button class="meal-buy" data-buy="' + m.id + '" aria-label="下单"><i></i><span>下单</span></button>' +
+      '</div>').join('');
+
+    return SK.ui.statusbar() +
+      '<div class="body home" id="homeBody">' +
+      /* 品牌栏 */
+      '<div class="brandrow">' +
+      '<div class="wordmark">食刻</div>' +
+      '<div class="brand-tag">暖食一刻 · 助餐服务</div>' +
+      '<div class="grow"></div>' +
+      '<button class="bell" data-go="messages" aria-label="消息提醒">' +
+      SK.icon('bell', 17) +
+      (s.unread > 0 ? '<span class="dot"></span>' : '') +
+      '<span class="bell-bar"></span></button>' +
+      '</div>' +
+      /* 问候横幅 */
+      '<div class="greet">' +
+      '<div class="greet-art">' + SK.art.greet() + '</div>' +
+      '<div class="greet-txt">' +
+      '<div class="greet-hi">' + esc(SK.elder.name) + '奶奶，<span class="gap"></span>' + greetWord() + '</div>' +
+      '<div class="greet-sub">' + esc(quotaTip) + '</div>' +
+      '</div>' +
+      '<div class="greet-street">服务街道 · ' + esc(SK.BRAND.street) + '</div>' +
+      '<button class="greet-cta" data-go="order"><span>立即点餐</span></button>' +
+      '</div>' +
+      /* 进行中的订单 */
+      orderCard +
+      /* 快捷服务 */
+      '<div class="sec-title"><h2>快捷服务</h2></div>' +
+      '<div class="quick">' + SK.quick.map((q) =>
+        '<button class="qitem" data-go="' + q.route + '">' +
+        '<span class="qico">' + q.k + '</span>' +
+        '<span class="qlabel">' + esc(q.label) + '</span></button>').join('') + '</div>' +
+      /* 今日补贴套餐 */
+      '<div class="sec-title"><h2>今日补贴套餐</h2><button class="more" data-go="order">12:00 前下单 · 支持自取' + SK.icon('arrow', 11) + '</button></div>' +
+      meals +
+      /* 服务承诺 */
+      '<div class="promise">' + SK.art.promise() +
+      '<span>温控 ≥60℃<i class="sep">·</i>半径校验<i class="sep">·</i>敲门回访<i class="sep">·</i>异常 24h 闭环</span></div>' +
+      '</div>' +
+      SK.ui.tabbar('home', s.unread);
+  };
+
+  S.home.after = function (root) {
+    const b = SK.$('#homeBody', root);
+    if (b) {
+      const h = SK.$('.greet-hi', root);
+      if (h) h.style.paddingTop = '20px';
+    }
+  };
+
+  /* ============================== 订单列表 ============================== */
+
+  S.orders = function () {
+    const s = SK.store.s;
+    const tab = s.orderTab || 'all';
+    const tabs = [{ k: 'all', n: '全部' }, { k: 'ing', n: '进行中' }, { k: 'done', n: '已完成' }];
+
+    let list = [];
+    if (s.activeOrder) {
+      list.push({
+        id: s.activeOrder.id, mealName: s.activeOrder.mealName,
+        pay: s.activeOrder.pay, subsidy: s.activeOrder.subsidy,
+        time: s.activeOrder.time, st: statusInfo(s.activeOrder.status).t,
+        live: s.activeOrder.status < 5, created: s.activeOrder.created,
+        channel: s.activeOrder.channel
+      });
+    }
+    s.orders.forEach((o) => list.push({ ...o, live: o.st === '配送中' || o.st === '待派单' || o.st === '异常挂起' }));
+
+    if (tab === 'ing') list = list.filter((o) => o.live);
+    if (tab === 'done') list = list.filter((o) => !o.live);
+
+    const body = list.length ? list.map((o) =>
+      '<div class="ord" data-go="' + (o.live ? 'track' : 'orderdetail') + '" data-id="' + esc(o.id) + '">' +
+      '<div class="ord-h"><span class="o-id">' + esc(o.id) + '</span>' +
+      '<span class="o-st" style="color:' + (o.live ? 'var(--deep)' : '#8C9A92') + '">' + esc(o.st) + '</span></div>' +
+      '<div class="ord-b"><div class="o-main">' +
+      '<div class="o-name">' + esc(o.mealName) + '</div>' +
+      '<div class="o-meta">' + esc(o.time) + ' · ' + esc(o.channel || '线上') + '</div></div>' +
+      '<div class="o-amt"><div class="money">¥' + SK.money(o.pay) + '</div>' +
+      (o.subsidy > 0 ? '<div class="o-save">补贴 −¥' + SK.yuan(o.subsidy) + '</div>' : '<div class="o-save" style="color:#A96833">自费</div>') +
+      '</div></div>' +
+      '<div class="ord-f"><span class="grow"></span>' +
+      (o.live ? '<button class="btn soft" data-go="track" data-id="' + esc(o.id) + '">查看进度</button>' :
+        '<button class="btn ghost" data-reorder="' + esc(o.id) + '">再来一单</button>') +
+      '</div></div>').join('') : '<div class="empty"><div class="e-ico">🍚</div>这里还没有订单<br>回首页点一份补贴套餐吧</div>';
+
+    return SK.ui.statusbar() +
+      '<div class="topbar"><div class="tb-title no-back">我的订单</div>' +
+      '<button class="iconbtn" data-go="order">' + SK.line('plus', 20) + '</button></div>' +
+      '<div class="body">' +
+      '<div class="tabs">' + tabs.map((t) =>
+        '<button class="' + (tab === t.k ? 'on' : '') + '" data-otab="' + t.k + '">' + t.n + '</button>').join('') + '</div>' +
+      '<div class="mt12">' + body + '</div>' +
+      '</div>' + SK.ui.tabbar('orders', s.unread);
+  };
+
+  /* ============================== 消息 ============================== */
+
+  S.messages = function () {
+    const s = SK.store.s;
+    return SK.ui.statusbar() +
+      '<div class="topbar"><div class="tb-title no-back">消息</div>' +
+      '<button class="iconbtn" data-readall="1" aria-label="全部已读">' + SK.line('check', 19) + '</button></div>' +
+      '<div class="body">' +
+      '<div class="tiny" style="padding:0 var(--pad) 10px">订单进度、补贴到账、回访记录都会在这里通知你</div>' +
+      s.messages.map((m) =>
+        '<div class="msg' + (m.unread ? ' unread' : '') + '" data-msg="' + esc(m.id) + '">' +
+        '<div class="m-ico ' + (m.cls || '') + '">' + m.ico + '</div>' +
+        '<div class="m-main"><div class="m-t">' + esc(m.t) + '</div>' +
+        '<div class="m-b">' + esc(m.b) + '</div>' +
+        '<div class="m-time">' + esc(m.time) + ' · ' + esc(m.tag || '') + '</div></div></div>').join('') +
+      '<div style="height:14px"></div></div>' +
+      SK.ui.tabbar('messages', s.unread);
+  };
+
+  /* ============================== 我的 ============================== */
+
+  S.profile = function () {
+    const s = SK.store.s;
+    const e = SK.elder;
+    return SK.ui.statusbar() +
+      '<div class="topbar"><div class="tb-title no-back">我的</div>' +
+      '<button class="iconbtn" data-go="about" aria-label="演示说明">' + SK.icon('spark', 17) + '</button></div>' +
+      '<div class="body">' +
+      '<div class="profile-hero">' +
+      '<div class="ph-row">' +
+      '<div class="ph-avatar">' + e.name.slice(-1) + '</div>' +
+      '<div><div class="ph-name">' + esc(e.name) + '<span class="chip">' + e.age + ' 岁</span></div>' +
+      '<div class="ph-sub">' + esc(e.level) + ' · ' + esc(e.live) + ' · ' + esc(e.phone) + '</div></div>' +
+      '</div>' +
+      '<div class="ph-tags">' + e.tags.map((t) => '<span class="chip grey">' + esc(t) + '</span>').join('') + '</div>' +
+      '<div class="ph-stats">' +
+      '<div class="st"><div class="v">' + e.age + '</div><div class="k">年龄</div></div>' +
+      '<div class="st"><div class="v">' + (s.orders.length + (s.activeOrder ? 1 : 0)) + '</div><div class="k">累计订单</div></div>' +
+      '<div class="st"><div class="v">' + (s.settings.knock ? '开' : '关') + '</div><div class="k">敲门回访</div></div>' +
+      '</div></div>' +
+
+      '<div class="sec-title"><h2>助餐服务</h2></div>' +
+      '<div class="menu-list">' +
+      '<button class="mi" data-go="subsidy"><span class="mi-ico">补</span>' +
+      '<span class="mi-l">补贴明细<small>今日余额 ¥' + SK.money(s.quotaLeft) + ' · ' + SK.myTierInfo().name + '</small></span>' +
+      '<span class="mi-r">' + SK.line('arrow', 16) + '</span></button>' +
+      '<button class="mi" data-go="orders"><span class="mi-ico">单</span>' +
+      '<span class="mi-l">我的订单<small>共 ' + (s.orders.length + (s.activeOrder ? 1 : 0)) + ' 单</small></span>' +
+      '<span class="mi-r">' + SK.line('arrow', 16) + '</span></button>' +
+      '<button class="mi" data-go="grid"><span class="mi-ico">代</span>' +
+      '<span class="mi-l">网格员代登记<small>不会用手机，也可以让王海帮你点</small></span>' +
+      '<span class="mi-r">' + SK.line('arrow', 16) + '</span></button>' +
+      '</div>' +
+
+      '<div class="sec-title"><h2>家人与社区</h2></div>' +
+      '<div class="menu-list">' +
+      '<div class="mi"><span class="mi-ico">👩</span>' +
+      '<span class="mi-l">' + esc(SK.family.name) + '（' + esc(SK.family.rel) + '）' +
+      '<small>已绑定代订权限 · ' + esc(SK.family.power) + '</small></span>' +
+      '<span class="mi-r chip">已绑定</span></div>' +
+      '<div class="mi"><span class="mi-ico">🏃</span>' +
+      '<span class="mi-l">网格员 ' + esc(e.gridWorker) + '<small>' + esc(e.street) + ' · 本周已回访 1 次</small></span>' +
+      '<span class="mi-r">' + SK.line('phone', 15) + '</span></div>' +
+      '</div>' +
+
+      '<div class="sec-title"><h2>运营与监管</h2><span class="tiny">答辩演示入口</span></div>' +
+      '<div class="menu-list">' +
+      '<button class="mi" data-go="ops"><span class="mi-ico">📊</span>' +
+      '<span class="mi-l">调度中枢<small>智能体推荐 · 人工确认 · 异常工单 · 台账</small></span>' +
+      '<span class="mi-r">' + SK.line('arrow', 16) + '</span></button>' +
+      '<button class="mi" data-go="gov"><span class="mi-ico">🏛️</span>' +
+      '<span class="mi-l">民政监管看板<small>助餐总量 · 补贴发放 · 补贴核销审计</small></span>' +
+      '<span class="mi-r">' + SK.line('arrow', 16) + '</span></button>' +
+      '</div>' +
+
+      '<div class="sec-title"><h2>服务设置</h2></div>' +
+      '<div class="menu-list">' +
+      '<div class="mi"><span class="mi-ico">Ａ</span><span class="mi-l">大字号模式<small>字更大、按钮更大，适合老人使用</small></span>' +
+      '<button class="switch ' + (s.settings.big ? 'on' : '') + '" data-set="big"></button></div>' +
+      '<div class="mi"><span class="mi-ico">🔊</span><span class="mi-l">语音播报<small>下单与送达时朗读关键信息</small></span>' +
+      '<button class="switch ' + (s.settings.voice ? 'on' : '') + '" data-set="voice"></button></div>' +
+      '<div class="mi"><span class="mi-ico">🚪</span><span class="mi-l">每单敲门回访<small>骑手送达时必须敲门并记录老人状态</small></span>' +
+      '<button class="switch ' + (s.settings.knock ? 'on' : '') + '" data-set="knock"></button></div>' +
+      '</div>' +
+
+      '<div class="sec-title"><h2>演示</h2></div>' +
+      '<div class="menu-list">' +
+      '<button class="mi" data-reset="1"><span class="mi-ico">↻</span>' +
+      '<span class="mi-l">重置演示数据<small>恢复到高保真稿的初始状态</small></span>' +
+      '<span class="mi-r">' + SK.line('refresh', 15) + '</span></button>' +
+      '<button class="mi" data-go="about"><span class="mi-ico">ℹ</span>' +
+      '<span class="mi-l">关于食刻<small>' + SK.BRAND.version + '</small></span>' +
+      '<span class="mi-r">' + SK.line('arrow', 16) + '</span></button>' +
+      '</div>' +
+      '<div class="center tiny" style="padding:16px 0 22px">' + SK.BRAND.org + '</div>' +
+      '</div>' +
+      SK.ui.tabbar('profile', s.unread);
+  };
+
+  /* ============================== 补贴明细 ============================== */
+
+  S.subsidy = function () {
+    const s = SK.store.s;
+    const used = s.quotaTotal - s.quotaLeft;
+    const my = SK.myTierInfo();
+    const pct = Math.round((used / s.quotaTotal) * 100);
+
+    const rows = s.ledger.slice(0, 8).map((l) =>
+      '<div class="ledger-item">' +
+      '<div class="li-ico' + (l.subsidy > 0 ? '' : ' out') + '">' + (l.subsidy > 0 ? '补' : '自') + '</div>' +
+      '<div class="li-main"><div class="li-t">' + esc(l.meal) +
+      '<span class="chip ' + (l.subsidy > 0 ? '' : 'orange') + '">' + (l.subsidy > 0 ? '补贴单' : '自费单') + '</span></div>' +
+      '<div class="li-s">' + esc(l.time) + ' · ' + esc(l.ch) + ' · ' + esc(l.st) + '</div></div>' +
+      '<div class="li-v' + (l.subsidy > 0 ? '' : ' out') + '">' + (l.subsidy > 0 ? '−¥' + SK.money(l.subsidy) : '¥' + SK.money(l.self)) + '</div>' +
+      '</div>').join('');
+
+    return SK.ui.statusbar() +
+      SK.ui.topbar('补贴明细') +
+      '<div class="body">' +
+      '<div class="sub-hero">' +
+      '<div class="sh-l">今日民政就餐补贴</div>' +
+      '<div class="sh-amt">¥' + SK.money(s.quotaLeft) + '<small> / ¥' + SK.money(s.quotaTotal) + '</small></div>' +
+      '<div class="sh-bar"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="sh-foot"><span>今日已抵扣 ¥' + SK.money(used) + '</span><span>每日 00:00 自动发放</span></div>' +
+      '</div>' +
+
+      '<div class="panel">' +
+      '<div class="panel-h"><span class="ph-dot"></span>梯度补贴 · 我的档位' +
+      '<span class="ph-r">依据《合肥市老年助餐实施细则》</span></div>' +
+      SK.tiers.map((t) => {
+        const me = t.k === SK.myTier;
+        return '<div class="tier' + (me ? ' me' : '') + '">' +
+          '<div class="t-main"><div class="t-name">' + esc(t.name) +
+          (me ? '<span class="chip">我的档位</span>' : '') + '</div>' +
+          '<div class="t-cond">' + esc(t.cond) + '</div></div>' +
+          '<div class="t-val">¥' + t.meal + ' <small>就餐 / 单</small></div>' +
+          '<div class="t-val">¥' + t.deliver + ' <small>送餐 / 单</small></div>' +
+          '</div>';
+      }).join('') +
+      '<div class="tiny mt12" style="line-height:1.75">' +
+      '你是「' + esc(my.name) + '」档位：每单就餐补贴 ¥' + my.meal + '，送餐补贴 ¥' + my.deliver +
+      '。补贴仅在「补贴套餐」中自动抵扣；自费自选按明码标价结算，不占用补贴额度。</div>' +
+      '</div>' +
+
+      '<div class="sec-title"><h2>补贴流水</h2><span class="tiny">共 ' + s.ledger.length + ' 笔</span></div>' +
+      '<div class="panel" style="margin-top:0">' + rows + '</div>' +
+      '<div class="demo-tip">补贴「个人出一点 + 政府补一点 + 企业让一点」：每笔补贴在民政端均可按单核对，核销与回滚全程留痕。</div>' +
+      '<div style="height:16px"></div>' +
+      '</div>';
+  };
+
+  /* ============================== 关于 ============================== */
+
+  S.about = function () {
+    return SK.ui.statusbar() +
+      SK.ui.topbar('关于食刻') +
+      '<div class="body">' +
+      '<div class="center" style="padding:26px 20px 6px">' +
+      '<div style="font-size:46px;font-weight:900;color:var(--deep);letter-spacing:4px">食刻</div>' +
+      '<div class="tiny mt8" style="letter-spacing:3px">暖食一刻 · 助餐服务</div>' +
+      '<div class="tiny mt8">' + SK.BRAND.version + '</div>' +
+      '</div>' +
+      '<div class="panel">' +
+      '<div class="panel-h"><span class="ph-dot"></span>为什么叫「食刻」</div>' +
+      '<div class="p">「时刻」谐音，「食」×「刻（一刻钟）」双关——把助餐与 15 分钟便民圈一起装进两个字。<br><br>' +
+      '食刻不是一个点餐 App，而是一套<b>可监管、可对账、可复用</b>的老年助餐调度系统：把「谁有资格、谁去送、送多远、补多少、谁负责」写进同一套系统。</div>' +
+      '</div>' +
+      '<div class="panel">' +
+      '<div class="panel-h"><span class="ph-dot"></span>本 Demo 覆盖的五条主线</div>' +
+      '<div class="p" style="line-height:2">' +
+      '① 常规补贴订单：家属下单 → 半径校验 → 派专职 → 敲门回访<br>' +
+      '② 自费自选订单：签约餐馆 → 明码标价 → 第三方运力 → 温控<br>' +
+      '③ 高峰合并派单：智能体推荐 → 调度员确认 → 就近集约<br>' +
+      '④ 异常与退单闭环：缺席上报 → 网格员上门 → 撤单 → 补贴回滚<br>' +
+      '⑤ 线下代登记：网格员代点 → 纸质凭证 → 手写签收 → 志愿时长</div>' +
+      '</div>' +
+      '<div class="panel">' +
+      '<div class="panel-h"><span class="ph-dot"></span>演示提示</div>' +
+      '<div class="p">· 首页与「我的」里都能进入<b>调度中枢</b>与<b>民政看板</b>（答辩重点）。<br>' +
+      '· 订单会每 6 秒自动推进一步，也可以手动「推进流程」快速演示。<br>' +
+      '· 所有数据只存在这台设备上，随时可在「我的 → 重置演示数据」恢复。</div>' +
+      '</div>' +
+      '<div style="height:18px"></div></div>';
+  };
+})(window);
+</script>
+<script>
+/* ==== assets/screens-order.js ==== */
+/* ==========================================================================
+   食刻 · 暖食一刻  |  screens-order.js —— 点餐 / 详情 / 支付 / 追踪 / 自费自选
+   ========================================================================== */
+(function (w) {
+  'use strict';
+  const SK = w.SK;
+  const esc = SK.esc;
+  const S = (SK.screens = SK.screens || {});
+
+  /* 下单表单的临时草稿（内存态，不持久化） */
+  const draft = (SK.draft = {
+    mealId: 'tb', qty: 1, soft: 'soft', lessSalt: true, lessOil: true,
+    allergy: [], note: '', time: '11:10', knock: true, addrId: 'a1', payMethod: 'wechat'
+  });
+
+  /* ============================== 点餐入口 ============================== */
+
+  S.order = function () {
+    const s = SK.store.s;
+    const left = s.quotaLeft;
+    const list = SK.meals.map((m) =>
+      '<div class="mcard" data-go="meal" data-id="' + m.id + '">' +
+      '<div class="mthumb">' + m.emoji + '</div>' +
+      '<div class="mcard-main">' +
+      '<div class="mcard-name">' + esc(m.name) +
+      (m.hot ? '<span class="chip orange">今日供应</span>' : '') + '</div>' +
+      '<div class="mcard-desc">' + esc(m.desc) + '</div>' +
+      '<div class="mcard-foot"><span class="money"><span class="u">¥</span>' + m.net + '</span>' +
+      '<span class="old">¥' + m.price + '</span>' +
+      '<span class="chip">' + esc(m.tag) + '</span>' +
+      '<span class="gap"></span>' +
+      '<button class="btn sm" data-buy="' + m.id + '">下单</button></div>' +
+      '</div></div>').join('');
+
+    return SK.ui.statusbar() +
+      SK.ui.topbar('补贴套餐点单') +
+      '<div class="body">' +
+      '<div class="panel" style="margin-top:2px">' +
+      '<div class="flex aic gap12">' +
+      '<div class="li-ico">补</div>' +
+      '<div style="flex:1"><div class="h3">今日补贴余额 ¥' + SK.money(left) + '</div>' +
+      '<div class="tiny mt8">下单即自动抵扣 · 12:00 前下单可预约明日</div></div>' +
+      '</div>' +
+      '<div class="tiny mt12" style="line-height:1.7;border-top:1px dashed rgba(28,107,76,.14);padding-top:10px">' +
+      '补贴套餐仅由<b>民政备案助餐资质</b>供给方提供（社区食堂 / 中央厨房），可追溯至每一份餐。</div>' +
+      '</div>' +
+      '<div class="sec-title"><h2>今日补贴套餐 · 7 款</h2><span class="tiny">' + SK.BRAND.street + '</span></div>' +
+      '<div class="meallist">' + list + '</div>' +
+      '<div class="demo-tip">提示：点「下单」可完成一次完整下单（含地址半径校验、补贴抵扣、支付）；点卡片可查看套餐详情与忌口设置。</div>' +
+      '<div style="height:16px"></div></div>';
+  };
+
+  /* ============================== 套餐详情 ============================== */
+
+  const ALLERGY = ['无辣', '无海鲜', '低糖', '不吃香菜', '不吃葱蒜'];
+  const TIMES = ['尽快送达', '11:00 – 11:15', '11:15 – 11:30', '11:30 – 11:45'];
+
+  S.meal = function (params) {
+    const m = SK.meals.find((x) => x.id === (params.id || draft.mealId)) || SK.meals[0];
+    draft.mealId = m.id;
+    const addr = SK.addresses.find((a) => a.id === draft.addrId) || SK.addresses[0];
+    const chk = SK.checkAddr(addr);
+    const sub = SK.calcSubsidy(m.subsidy * draft.qty);
+    const pay = m.price * draft.qty - sub;
+
+    return SK.ui.statusbar() +
+      SK.ui.topbar('套餐详情') +
+      '<div class="body" style="padding-bottom:8px">' +
+      '<div class="detail-hero">' +
+      '<span class="dh-badge">补贴套餐 · ' + esc(m.tag) + '</span>' +
+      '<h2>' + esc(m.name) + '</h2>' +
+      '<div class="dh-sub">' + esc(m.desc) + '</div>' +
+      '<div class="detail-price"><span class="money"><span class="u">¥</span>' + SK.yuan(pay) + '</span>' +
+      '<span class="old">原价 ¥' + SK.money(m.price * draft.qty) + '</span>' +
+      '<span class="save">已补贴 ¥' + SK.yuan(sub) + '</span></div>' +
+      '</div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>套餐内容<span class="ph-r">' + m.kcal + ' kcal</span></div>' +
+      '<div class="opt-row">' + m.items.map((i) => '<span class="chip grey">' + esc(i) + '</span>').join('') + '</div>' +
+      '<div class="tiny mt12">适合：' + m.fit.join(' · ') + '</div></div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>口感与忌口<span class="ph-r">直接影响出餐</span></div>' +
+      '<div class="field"><label>主食软硬度</label><div class="seg">' +
+      '<button class="' + (draft.soft === 'soft' ? 'on' : '') + '" data-draft="soft:soft">软饭（推荐）</button>' +
+      '<button class="' + (draft.soft === 'norm' ? 'on' : '') + '" data-draft="soft:norm">正常</button>' +
+      '<button class="' + (draft.soft === 'soup' ? 'on' : '') + '" data-draft="soft:soup">粥 / 汤面</button></div></div>' +
+      '<div class="field"><label>口味要求</label><div class="opt-row">' +
+      '<button class="opt ' + (draft.lessSalt ? 'on' : '') + '" data-draft="lessSalt">少盐</button>' +
+      '<button class="opt ' + (draft.lessOil ? 'on' : '') + '" data-draft="lessOil">少油</button>' +
+      '<button class="opt ' + (draft.knock ? 'on' : '') + '" data-draft="knock">需敲门回访</button>' +
+      '</div></div>' +
+      '<div class="field" style="margin-bottom:0"><label>忌口标签</label><div class="opt-row">' +
+      ALLERGY.map((a) => '<button class="opt ' + (draft.allergy.indexOf(a) >= 0 ? 'on' : '') + '" data-al="' + a + '">' + a + '</button>').join('') +
+      '</div><div class="hintline">忌口标签会随订单下发到食堂与骑手端，出餐前二次核对。</div></div>' +
+      '</div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>送达时间</div><div class="opt-row">' +
+      TIMES.map((t, i) => '<button class="opt ' + (draft.timeIdx === i || (draft.timeIdx == null && i === 1) ? 'on' : '') + '" data-time="' + i + '">' + t + '</button>').join('') +
+      '</div></div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>配送地址<span class="ph-r">下单即校验半径</span></div>' +
+      '<button class="addr" style="width:100%;text-align:left" data-go="addrs">' +
+      '<span class="a-ico">' + SK.line('pin', 15) + '</span>' +
+      '<span class="a-main"><span class="a-name">' + esc(addr.name) + ' · ' + esc(addr.who) + '</span>' +
+      '<span class="a-detail">' + esc(addr.detail) + '</span>' +
+      '<span class="a-check">' +
+      '<span class="chip ' + (chk.ok ? '' : 'red') + '">' + (chk.ok ? '✓ 半径 ' + addr.distance + 'm · 通过' : '✕ 超出半径') + '</span>' +
+      (addr.selfPick ? '<span class="chip blue">集中取餐点自取</span>' : '') +
+      '</span></span>' +
+      '<span class="mi-r">' + SK.line('arrow', 15) + '</span></button>' +
+      '<div class="flex aic gap12 mt12">' +
+      '<span class="h3" style="flex:1">份数</span>' +
+      '<div class="stepper"><button data-qty="-1"' + (draft.qty <= 1 ? ' disabled' : '') + '>−</button>' +
+      '<span class="n">' + draft.qty + '</span>' +
+      '<button data-qty="1">＋</button></div></div>' +
+      '<div class="field mt16" style="margin-bottom:0"><label>备注（可选）</label>' +
+      '<textarea class="input" rows="2" placeholder="例如：米饭再软一点，菜切小一点" data-note="1">' + esc(draft.note) + '</textarea></div>' +
+      '</div>' +
+
+      '<div class="demo-tip">补贴计算：原价 ¥' + SK.money(m.price * draft.qty) + ' − 民政补贴 ¥' + SK.yuan(sub) +
+      ' = 实付 ¥' + SK.yuan(pay) + '。今日补贴余额 ¥' + SK.money(SK.store.s.quotaLeft) + '。</div>' +
+      '<div style="height:18px"></div></div>' +
+
+      '<div class="paybar"><div class="pb-l">' +
+      '<div class="pb-label">合计</div>' +
+      '<div class="pb-amt"><span class="money"><span class="u">¥</span>' + SK.yuan(pay) + '</span></div>' +
+      '<div class="pb-save">已抵扣 ¥' + SK.yuan(sub) + '</div></div>' +
+      '<button class="btn" data-confirm-order="1">确认下单</button></div>';
+  };
+
+  /* ============================== 地址选择 ============================== */
+
+  S.addrs = function () {
+    return SK.ui.statusbar() +
+      SK.ui.topbar('选择配送地址') +
+      '<div class="body">' +
+      '<div class="tiny" style="padding:0 var(--pad) 12px">系统按 15 分钟便民生活圈校验半径（≤1500m 安排上门），超半径引导自取或流动餐车。</div>' +
+      SK.addresses.map((a) => {
+        const chk = SK.checkAddr(a);
+        return '<button class="addr" style="width:100%;text-align:left;margin:0 var(--pad) 10px;width:calc(100% - var(--pad)*2);' +
+          (draft.addrId === a.id ? 'box-shadow:0 0 0 1.6px var(--green);' : '') + '" data-pickaddr="' + a.id + '">' +
+          '<span class="a-ico">' + SK.line('pin', 15) + '</span>' +
+          '<span class="a-main"><span class="a-name">' + esc(a.name) + ' · ' + esc(a.who) + '</span>' +
+          '<span class="a-detail">' + esc(a.detail) + '</span>' +
+          '<span class="a-check"><span class="chip ' + (chk.ok ? '' : 'red') + '">' +
+          (chk.ok ? '✓ ' + a.distance + 'm · ' + a.label : '✕ 超出半径 · ' + (a.distance / 1000) + 'km') + '</span></span></span>' +
+          '</button>';
+      }).join('') +
+      '<div class="demo-tip">地址「女儿家（上海）」用于演示：超出半径时会拦截上门配送，并给出自取 / 餐车兜底建议。</div>' +
+      '<div style="height:16px"></div></div>';
+  };
+
+  /* ============================== 支付 ============================== */
+
+  S.pay = function () {
+    const m = SK.meals.find((x) => x.id === draft.mealId) || SK.meals[0];
+    const addr = SK.addresses.find((a) => a.id === draft.addrId) || SK.addresses[0];
+    const chk = SK.checkAddr(addr);
+    const sub = SK.calcSubsidy(m.subsidy * draft.qty);
+    const total = m.price * draft.qty;
+    const pay = total - sub;
+
+    return SK.ui.statusbar() +
+      SK.ui.topbar('确认支付') +
+      '<div class="body">' +
+      '<div class="pay-hero"><div class="ph-amt">¥' + SK.yuan(pay) + '</div>' +
+      '<div class="ph-lb">需支付金额 · 补贴已自动抵扣</div>' +
+      '<div class="ph-chip"><span class="chip">民政补贴 ¥' + SK.yuan(sub) + '</span></div></div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>订单明细</div>' +
+      '<div class="payrow"><span class="p-l">' + esc(m.name) + ' ×' + draft.qty + '</span><span class="p-r">¥' + SK.yuan(total) + '</span></div>' +
+      '<div class="payrow minus"><span class="p-l">民政就餐补贴（' + SK.myTierInfo().name + '）</span><span class="p-r">−¥' + SK.yuan(sub) + '</span></div>' +
+      '<div class="payrow"><span class="p-l">配送费（专职养老配送）</span><span class="p-r">¥0</span></div>' +
+      '<div class="payrow total"><span class="p-l">实付</span><span class="p-r">¥' + SK.yuan(pay) + '</span></div>' +
+      '<div class="tiny mt12">配送至：' + esc(addr.detail) + ' · ' + (chk.ok ? addr.distance + 'm' : '超半径') + '</div>' +
+      '</div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>支付方式</div>' +
+      [['wechat', '微信支付', '已绑定 · 推荐'], ['balance', '助餐账户余额', '余额 ¥86.50'], ['cash', '送达到家支付', '当面付款 · 支持现金']]
+        .map((p) => '<button class="paymeth ' + (draft.payMethod === p[0] ? 'on' : '') + '" data-pay="' + p[0] + '" style="width:100%;text-align:left">' +
+          '<span class="pm-ico">' + (p[0] === 'wechat' ? '💚' : p[0] === 'balance' ? '💰' : '🤝') + '</span>' +
+          '<span class="pm-name">' + p[1] + '<span class="pm-sub">' + p[2] + '</span></span>' +
+          '<span class="radio"></span></button>').join('') +
+      '</div>' +
+      '<div class="demo-tip">本次为演示环境，不会发生真实扣款。补贴预核销 → 送达确认后正式核销；异常撤单则自动回滚。</div>' +
+      '<div style="height:16px"></div></div>' +
+      '<div class="paybar"><div class="pb-l"><div class="pb-label">实付</div>' +
+      '<div class="pb-amt"><span class="money"><span class="u">¥</span>' + SK.yuan(pay) + '</span></div></div>' +
+      '<button class="btn" data-dopay="1">' + (draft.payMethod === 'cash' ? '确认下单' : '立即支付') + '</button></div>';
+  };
+
+  /* ============================== 订单追踪 ============================== */
+
+  S.track = function (params) {
+    const s = SK.store.s;
+    const a = s.activeOrder;
+    if (!a) return S.orders();
+
+    const cur = a.status;
+    const steps = SK.STEPS;
+    const tl = steps.map((st, i) => {
+      const done = i < cur, now = i === cur;
+      let extra = '';
+      if (i === 1 && done) extra = '三里庵社区食堂 · 后厨 3 号窗口';
+      if (i === 2 && done) extra = '李师傅 · 保温箱已密封 · 62℃';
+      if (i === 3 && (done || now)) extra = '距你 380m · 沿竹荫路直行';
+      if (i === 4 && (done || now)) extra = a.visit ? '11:14 敲门 · ' + a.visit.open : '按「失能 + 需回访」执行敲门';
+      if (i === 5 && done) extra = a.visit ? a.visit.t + ' 回访：' + a.visit.open + ' · ' + a.visit.mood : '回访已记录';
+      return '<div class="tl-item ' + (done ? 'done' : now ? 'now' : 'future') + '">' +
+        '<div class="tl-rail"><span class="tl-dot"></span>' + (i < steps.length - 1 ? '<span class="tl-line"></span>' : '') + '</div>' +
+        '<div class="tl-body"><div class="tl-t">' + esc(st.t) +
+        (i === cur && cur < 5 ? '<span class="chip">当前</span>' : '') +
+        '</div><div class="tl-d">' + esc(extra || st.d) + '</div></div></div>';
+    }).join('');
+
+    const visitCard = a.visit ? '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>敲门回访记录<span class="ph-r">已写入老人状态卡</span></div>' +
+      '<div class="visit"><div class="v-head">' + SK.line('shield', 15) + '回访结论 · 可审计</div>' +
+      '<div class="v-body">' + esc(a.visit.by) + ' 于 ' + esc(a.visit.t) + ' 完成敲门回访，记录如下：</div>' +
+      '<div class="v-grid">' +
+      '<div class="vg"><div class="k">是否开门</div><div class="v">' + esc(a.visit.open) + '</div></div>' +
+      '<div class="vg"><div class="k">老人状态</div><div class="v">' + esc(a.visit.mood) + '</div></div>' +
+      '<div class="vg"><div class="k">是否需要协助</div><div class="v">' + esc(a.visit.need) + '</div></div>' +
+      '<div class="vg"><div class="k">回访人</div><div class="v">' + esc(a.visit.by) + '</div></div>' +
+      '</div></div></div>' : '';
+
+    const temp = a.status >= 2 ? (a.temp || 62) : 0;
+    const tempPct = Math.min(100, Math.max(0, ((temp - 55) / 15) * 100));
+
+    return SK.ui.statusbar() +
+      SK.ui.topbar('订单详情') +
+      '<div class="body">' +
+      '<div class="track-hero">' +
+      '<div class="th-status">' + esc(steps[cur].t).toUpperCase() + '</div>' +
+      '<div class="th-eta">' + (cur >= 5 ? '11:14' : a.time) +
+      '<small>' + (cur >= 5 ? '送达时间 · 已核销补贴 ¥' + SK.yuan(a.subsidy) : '预计送达') + '</small></div>' +
+      '<div class="th-note">' + (cur >= 5 ? '回访已记录 · 补贴已核销' : esc(steps[cur].d)) + '</div>' +
+      '<div class="th-metrics">' +
+      '<div class="thm"><div class="v">' + (temp ? temp + '℃' : '—') + '</div><div class="k">保温箱温控</div></div>' +
+      '<div class="thm"><div class="v">' + a.dist + 'm</div><div class="k">距助餐点半径</div></div>' +
+      '<div class="thm"><div class="v">' + (a.visit ? '已完成' : '待执行') + '</div><div class="k">敲门回访</div></div>' +
+      '</div></div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>配送进度<span class="ph-r">每 5 秒回传一次</span></div>' +
+      '<div class="tl">' + tl + '</div></div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>配送员</div>' +
+      '<div class="courier"><div class="avatar">' + a.courier.name.slice(0, 1) + '</div>' +
+      '<div class="c-main"><div class="c-name">' + esc(a.courier.name) + '<span class="chip">专职养老配送</span></div>' +
+      '<div class="c-sub">' + esc(a.courier.tag) + ' · ' + esc(a.courier.phone) + '</div></div>' +
+      '<button class="callbtn" data-call="1">' + SK.line('phone', 17) + '</button></div>' +
+      '<div class="tempbar"><div class="tb-l"><span>保温箱温度</span><span>' + (temp ? temp + '℃（要求 ≥60℃）' : '尚未取餐') + '</span></div>' +
+      '<div class="tb-track"><i class="tb-fill" style="width:' + tempPct + '%"></i><span class="tb-mark" style="left:' + ((60 - 55) / 15 * 100) + '%"></span></div></div>' +
+      '</div>' +
+
+      visitCard +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>订单信息</div>' +
+      '<div class="payrow"><span class="p-l">订单号</span><span class="p-r">' + esc(a.id) + '</span></div>' +
+      '<div class="payrow"><span class="p-l">餐品</span><span class="p-r">' + esc(a.mealName) + '</span></div>' +
+      '<div class="payrow"><span class="p-l">配送地址</span><span class="p-r" style="max-width:62%;text-align:right">' + esc(a.addr) + '</span></div>' +
+      '<div class="payrow"><span class="p-l">下单渠道</span><span class="p-r">' + esc(a.channel) + '</span></div>' +
+      '<div class="payrow"><span class="p-l">补贴抵扣</span><span class="p-r" style="color:var(--green)">−¥' + SK.money(a.subsidy) + '</span></div>' +
+      '<div class="payrow total"><span class="p-l">实付</span><span class="p-r">¥' + SK.money(a.pay) + '</span></div>' +
+      '</div>' +
+
+      (cur < 5 ? '<div class="demo-tip">演示：订单会自动推进状态；也可以点下方按钮手动快进，或模拟一次「敲门无人应答」走异常闭环。</div>' +
+        '<div class="flex gap8" style="padding:0 var(--pad) 10px">' +
+        '<button class="btn soft" style="flex:1;height:42px" data-advance="1">推进流程 ▸</button>' +
+        '<button class="btn ghost" style="flex:1;height:42px" data-simexc="1">模拟异常</button></div>' : '') +
+      '<div style="height:16px"></div></div>';
+  };
+
+  /* ============================== 历史订单详情 ============================== */
+
+  S.orderdetail = function (params) {
+    const s = SK.store.s;
+    const o = s.orders.find((x) => x.id === params.id) || s.orders[0];
+    if (!o) return S.orders();
+    return SK.ui.statusbar() + SK.ui.topbar('订单详情') +
+      '<div class="body"><div class="panel">' +
+      '<div class="panel-h"><span class="ph-dot"></span>' + esc(o.mealName) + '<span class="ph-r">' + esc(o.st) + '</span></div>' +
+      '<div class="payrow"><span class="p-l">订单号</span><span class="p-r">' + esc(o.id) + '</span></div>' +
+      '<div class="payrow"><span class="p-l">下单时间</span><span class="p-r">' + esc(o.created) + '</span></div>' +
+      '<div class="payrow"><span class="p-l">送达时段</span><span class="p-r">' + esc(o.time) + '</span></div>' +
+      '<div class="payrow"><span class="p-l">渠道</span><span class="p-r">' + esc(o.channel || '线上') + '</span></div>' +
+      '<div class="payrow"><span class="p-l">餐品原价</span><span class="p-r">¥' + SK.money(o.price) + '</span></div>' +
+      '<div class="payrow minus"><span class="p-l">民政补贴</span><span class="p-r">−¥' + SK.money(o.subsidy) + '</span></div>' +
+      '<div class="payrow total"><span class="p-l">实付</span><span class="p-r">¥' + SK.money(o.pay) + '</span></div>' +
+      '</div>' +
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>履约凭证</div>' +
+      '<div class="payrow"><span class="p-l">送达温控</span><span class="p-r">' + (o.temp ? o.temp + '℃' : '—') + '</span></div>' +
+      '<div class="payrow"><span class="p-l">回访结论</span><span class="p-r">' + esc(o.visit || '—') + '</span></div>' +
+      '<div class="tiny mt12">签收与回访记录均已写入街道台账，可在「调度中枢 → 台账」中按单核对。</div></div>' +
+      '<div class="flex gap8" style="padding:4px var(--pad)"><button class="btn soft block" data-reorder="' + esc(o.id) + '">再来一单</button></div>' +
+      '<div style="height:16px"></div></div>';
+  };
+
+  /* ============================== 自费自选 ============================== */
+
+  S.selfselect = function () {
+    const s = SK.store.s;
+    const cnt = SK.cartCount();
+    const total = SK.cartTotal();
+
+    const body = SK.restaurants.map((r) => {
+      const dishes = r.dishes.map((d) => {
+        const q = s.cart[d.id] || 0;
+        return '<div class="dish"><div class="d-main">' +
+          '<div class="d-name">' + esc(d.name) + d.tags.map((t) => '<span class="chip" style="margin-left:5px;height:17px;font-size:9px">' + t + '</span>').join('') + '</div>' +
+          '<div class="d-desc">' + esc(d.desc) + '</div></div>' +
+          '<span class="d-price">¥' + d.price + '</span>' +
+          (q > 0
+            ? '<div class="qtybox"><button data-sub="' + d.id + '">−</button><span class="q">' + q + '</span><button data-add="' + d.id + '">＋</button></div>'
+            : '<button class="addbtn" data-add="' + d.id + '">＋</button>') +
+          '</div>';
+      }).join('');
+      return '<div class="rest"><div class="rest-h">' +
+        '<div class="rh-logo">' + (r.type.indexOf('央厨') >= 0 ? '🏭' : '🍚') + '</div>' +
+        '<div class="rh-main"><div class="rh-name">' + esc(r.name) +
+        '<span class="chip">' + esc(r.type) + '</span></div>' +
+        '<div class="rh-sub">' + r.dist + 'km · 评分 ' + r.score + ' · ' + esc(r.note) + '</div></div></div>' +
+        '<div style="margin-top:6px">' + dishes + '</div></div>';
+    }).join('');
+
+    return SK.ui.statusbar() +
+      SK.ui.topbar('自费自选') +
+      '<div class="body" style="padding-bottom:78px">' +
+      '<div class="self-banner"><span class="sb-ico">🧾</span>' +
+      '<div><div class="sb-t">明码标价 · 不占用补贴额度</div>' +
+      '<div class="sb-s">签约餐馆 2 公里内可自费加菜，市场化运力承诺 40 分钟送达，保温箱温控 ≥60℃。</div></div></div>' +
+      '<div class="sec-title"><h2>签约供给方</h2><span class="tiny">已备案助餐资质</span></div>' +
+      body +
+      '<div class="demo-tip">自费单与补贴单<b>双账目独立核算</b>：补贴单进民政结算，自费单进商家分账，互不混淆。</div>' +
+      '<div style="height:10px"></div></div>' +
+      (cnt > 0 ? '<div class="cart-fab"><div class="cf-l"><div class="cf-n">已选 ' + cnt + ' 份</div>' +
+        '<div class="cf-s">约 40 分钟送达</div></div>' +
+        '<div class="cf-amt">¥' + SK.yuan(total) + '</div>' +
+        '<button class="cf-btn" data-cart="1">去结算</button></div>' : '');
+  };
+
+  /* 购物车浮层 */
+  SK.openCart = function () {
+    const lines = SK.cartLines();
+    if (!lines.length) { SK.toast('购物车还是空的'); return; }
+    SK.ui.sheet({
+      title: '确认自费订单',
+      body: lines.map((l) =>
+        '<div class="payrow"><span class="p-l">' + esc(l.d.name) + ' ×' + l.q +
+        '<br><span class="tiny">' + esc(l.r.name) + '</span></span>' +
+        '<span class="p-r">¥' + SK.money(l.d.price * l.q) + '</span></div>').join('') +
+        '<div class="payrow total"><span class="p-l">合计（自费）</span><span class="p-r">¥' + SK.money(SK.cartTotal()) + '</span></div>' +
+        '<div class="tiny mt12">自费订单<b>不抵扣补贴</b>，结算进入商家分账；送达同样执行温控与回访要求。</div>',
+      foot: '<button class="btn block" data-doself="1">提交自费订单 · ¥' + SK.money(SK.cartTotal()) + '</button>'
+    });
+  };
+})(window);
+</script>
+<script>
+/* ==== assets/screens-ops.js ==== */
+/* ==========================================================================
+   食刻 · 暖食一刻  |  screens-ops.js —— 网格员代登记 / 调度中枢 / 民政看板
+   ========================================================================== */
+(function (w) {
+  'use strict';
+  const SK = w.SK;
+  const esc = SK.esc;
+  const S = (SK.screens = SK.screens || {});
+
+  const VOICE_TEXT = '钱秀兰的邻居张桂芳，少盐、软食，不吃辣，每天中午十一点半前送到。';
+
+  /* ============================== 网格员代登记 ============================== */
+
+  S.grid = function () {
+    const s = SK.store.s;
+    const sel = s.gridSel || [];
+    const gw = SK.gridWorker;
+
+    return SK.ui.statusbar() +
+      SK.ui.topbar('网格员代登记', {
+        right: '<span class="chip" style="margin-right:2px">线下通道</span>'
+      }) +
+      '<div class="body">' +
+      '<div class="grid-head">' +
+      '<div class="gh-t">' + SK.line('persons', 16) + esc(gw.name) + ' · ' + esc(gw.role) + '</div>' +
+      '<div class="gh-s">负责 ' + esc(gw.blocks) + ' · 本楼栋名单 6 位老人（民政导出）<br>' +
+      '「不会用手机」不是例外，而是默认设计：名单 + 语音 + 纸质凭证 + 手写签收。</div>' +
+      '</div>' +
+
+      '<div class="sec-title"><h2>本楼栋名单</h2>' +
+      '<button class="more" data-gridall="1">' + (sel.length === SK.gridElders.length ? '取消全选' : '全选') + '</button></div>' +
+      SK.gridElders.map((e) =>
+        '<button class="elder ' + (sel.indexOf(e.id) >= 0 ? 'on' : '') + '" data-gridsel="' + e.id + '" style="width:calc(100% - var(--pad)*2);margin:0 var(--pad) 8px;text-align:left">' +
+        '<span class="e-av">' + e.name.slice(0, 1) + '</span>' +
+        '<span class="e-main"><span class="e-name">' + esc(e.name) +
+        '<span class="chip grey" style="height:17px;font-size:9px">' + e.age + ' 岁</span></span>' +
+        '<span class="e-meta">' + esc(e.addr) + ' · ' + esc(e.tag) + '</span></span>' +
+        '<span class="e-box">' + (sel.indexOf(e.id) >= 0 ? '✓' : '') + '</span></button>').join('') +
+
+      '<div class="sec-title"><h2>语音代登记</h2><span class="tiny">网格员口述，系统转文字</span></div>' +
+      '<div class="voice">' +
+      '<button class="v-btn" id="voiceBtn">' + SK.line('mic', 26, 1.9) + '</button>' +
+      '<div class="v-t">' + (s.gridVoice ? '已识别，可继续补充或直接生成凭证' : '按住说一句：老人姓名 + 忌口 + 送达时间') + '</div>' +
+      '<div class="v-res" id="voiceRes">' + (s.gridVoice
+        ? '<span class="vw">' + esc(s.gridVoice) + '</span>'
+        : '<span style="color:#A6B3AB">识别结果会显示在这里…</span>') + '</div>' +
+      '</div>' +
+
+      '<div class="demo-tip">代登记订单自动打上「线下通道」标记，与线上订单进入<b>同一调度池</b>；' +
+      '系统同时打印带二维码的纸质凭证，老人手写签收，志愿时长夜间自动入账。</div>' +
+      '<div style="height:78px"></div></div>' +
+
+      '<div class="paybar"><div class="pb-l"><div class="pb-label">已选老人</div>' +
+      '<div class="pb-amt"><span class="money" style="color:var(--ink)">' + sel.length + '</span><span class="tiny" style="margin-left:4px">位</span></div>' +
+      '<div class="pb-save">合计 ¥' + (sel.length * 8) + '（补贴后）</div></div>' +
+      '<button class="btn" data-gridmake="1" ' + (sel.length ? '' : 'disabled') + '>生成凭证</button></div>';
+  };
+
+  /* ============================== 纸质凭证 ============================== */
+
+  S.voucher = function () {
+    const s = SK.store.s;
+    const b = s.gridBatch;
+    const names = (b ? b.elders : SK.gridElders.slice(0, 6)).map((e) => (e.name || e));
+    const no = b ? b.no : 'ZP20261123-006';
+    const voice = (b && b.voice) || s.gridVoice || '少盐、软食，不吃辣';
+
+    return SK.ui.statusbar() +
+      SK.ui.topbar('纸质凭证') +
+      '<div class="body">' +
+      '<div class="tiny" style="padding:0 var(--pad) 12px">凭证一式两份：老人手写签收后，扫码回写公示台账，同时作为志愿时长证据。</div>' +
+      '<div style="padding:0 var(--pad)"><div class="voucher">' +
+      '<div class="vc-head"><span class="vh-t">食刻 · 助餐取餐凭证</span><span class="vh-n">' + esc(no) + '</span></div>' +
+      '<div class="vc-line"></div>' +
+      '<div class="vc-row"><span class="k">助餐点</span><span class="v">三里庵社区食堂 · 3 号窗口</span></div>' +
+      '<div class="vc-row"><span class="k">取餐时段</span><span class="v">11:30 – 12:00</span></div>' +
+      '<div class="vc-row"><span class="k">登记人</span><span class="v">王海 · 网格员</span></div>' +
+      '<div class="vc-row"><span class="k">当餐菜品</span><span class="v">清蒸鲈鱼饭 · 软饭</span></div>' +
+      '<div class="vc-row"><span class="k">忌口</span><span class="v">' + esc(voice) + '</span></div>' +
+      '<div class="vc-row"><span class="k">份数 / 实付</span><span class="v">' + names.length + ' 份 · 每人 ¥8.00</span></div>' +
+      '<div class="vc-line"></div>' +
+      '<div class="vc-qr"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASIAAAEiAQMAAABncE31AAAABlBMVEUca0z////u7fzkAAABUUlEQVR42u2aOxLDIAxENeEAPpKvzpE4ADPEQh9wKqeQimQpnMCoepFWixwaD1YlRCHq16Ia6TpH549ynbcy7PTa1hc9WYj6Loom57nobI794O08bWAfy36mt7Cvlu3XlmsB7HPYs+bww8oA7HPZ09H1DOwz9X5rwQV6n8LefU5T0ZcHfE48+w/XebjRXGfgFcVeVV7aLLOfmiM6xG4T7MN7rWAXgfeGC/Y5eS8WR7K9q8WB5oSzZz85r1W35IfPSfA5lvxmNKt86/A5CT5nZfsao4nbhOaEa457Gu2wVgbI+3Cfc7bl9M1jqvwj7xPuVtpwJ2za77pgn3Cvdb1fk3zofdI8Z5Mbm2NC76P1fntvVWnPe/0pwCt4pmCvTbrXQoHPSWPvoxyx+8NvuOCVwd4qwCUIHjNN7/dJAjxmps9xpz/2EQPYJ/h7/JcMUX8S9QaYdcqGrRTozQAAAABJRU5ErkJggg==" alt="凭证二维码">' +
+      '<div class="qr-t">扫码核销凭证<br>回写街道公示台账<br>计入志愿时长 <b>0.5 h</b></div></div>' +
+      '<div class="vc-sign">' +
+      '<div class="sig-box" id="sigBox"><span id="sigHint">请老人手写签收</span><canvas id="sigPad"></canvas></div>' +
+      '<button class="btn sm" data-sigclear="1" style="align-self:flex-end">重签</button>' +
+      '</div>' +
+      '<div class="tiny mt8">领取人：' + esc(names.slice(0, 3).join('、')) + (names.length > 3 ? ' 等 ' + names.length + ' 位' : '') + '</div>' +
+      '</div></div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>同步到调度池</div>' +
+      '<div class="payrow"><span class="p-l">订单渠道</span><span class="p-r"><span class="chip">线下通道 · 代登记</span></span></div>' +
+      '<div class="payrow"><span class="p-l">调度池</span><span class="p-r">与线上订单同一池 · 统一半径校验</span></div>' +
+      '<div class="payrow"><span class="p-l">台账回写</span><span class="p-r">当晚 20:00 前自动入账</span></div>' +
+      '</div>' +
+      '<div class="demo-tip">「窗帘之约」式的兜底：凭证丢失可凭身份证 + 楼栋名单核对放餐；回写遗漏次日 9:00 系统自动比对差异并提醒补录。</div>' +
+      '<div style="height:16px"></div></div>' +
+
+      '<div class="paybar"><div class="pb-l"><div class="pb-label">状态</div>' +
+      '<div class="pb-amt"><span class="money" style="font-size:14px" id="sigState">待签收</span></div></div>' +
+      '<button class="btn" data-sigdone="1">确认签收 · 完成</button></div>';
+  };
+
+  S.voucher.after = function (root) {
+    const cv = SK.$('#sigPad', root);
+    if (!cv) return;
+    const box = SK.$('#sigBox', root);
+    const hint = SK.$('#sigHint', root);
+    const state = SK.store.s;
+    state._signed = false;
+
+    const resize = () => {
+      const r = box.getBoundingClientRect();
+      const dpr = Math.min(2, w.devicePixelRatio || 1);
+      cv.width = Math.round(r.width * dpr);
+      cv.height = Math.round(r.height * dpr);
+      const ctx = cv.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#1C6B4C';
+    };
+    resize();
+    setTimeout(resize, 60);
+
+    const ctx2 = () => cv.getContext('2d');
+    let drawing = false;
+    const pos = (e) => {
+      const r = cv.getBoundingClientRect();
+      const p = e.touches ? e.touches[0] : e;
+      return { x: p.clientX - r.left, y: p.clientY - r.top };
+    };
+    const start = (e) => {
+      drawing = true;
+      if (hint) hint.style.display = 'none';
+      state._signed = true;
+      const el = SK.$('#sigState', root);
+      if (el) { el.textContent = '已签收'; el.style.color = 'var(--green)'; }
+      const p = pos(e);
+      ctx2().beginPath();
+      ctx2().moveTo(p.x, p.y);
+      e.preventDefault();
+    };
+    const move = (e) => {
+      if (!drawing) return;
+      const p = pos(e);
+      ctx2().lineTo(p.x, p.y);
+      ctx2().stroke();
+      e.preventDefault();
+    };
+    const end = () => { drawing = false; };
+
+    cv.addEventListener('mousedown', start);
+    cv.addEventListener('mousemove', move);
+    w.addEventListener('mouseup', end);
+    cv.addEventListener('touchstart', start, { passive: false });
+    cv.addEventListener('touchmove', move, { passive: false });
+    cv.addEventListener('touchend', end);
+
+    SK.bind(root, '[data-sigclear]', 'click', () => {
+      resize();
+      state._signed = false;
+      if (hint) hint.style.display = '';
+      const el = SK.$('#sigState', root);
+      if (el) { el.textContent = '待签收'; el.style.color = ''; }
+    });
+  };
+
+  /* ============================== 调度中枢 ============================== */
+
+  const OPS_TABS = [
+    { k: 'dispatch', n: '派单', ico: 'grid' },
+    { k: 'exception', n: '异常', ico: 'alert' },
+    { k: 'pool', n: '运力', ico: 'persons' },
+    { k: 'ledger', n: '台账', ico: 'doc' }
+  ];
+
+  S.ops = function () {
+    const s = SK.store.s;
+    const tab = s.opsTab || 'dispatch';
+    const st = SK.queueStats();
+    const extra = s.aiDone ? 0 : 30;
+    const pendingTotal = st.pending + extra;
+    const gv = SK.govNow();
+
+    const kpis =
+      '<div class="kpis">' +
+      '<div class="kpi"><div class="k-v">' + (gv.total) + '</div><div class="k-k">今日助餐总量</div></div>' +
+      '<div class="kpi ' + (pendingTotal > 0 ? 'warn' : 'good') + '"><div class="k-v">' + pendingTotal + '</div><div class="k-k">待派单</div></div>' +
+      '<div class="kpi"><div class="k-v">31<small>/40</small></div><div class="k-k">运力在线</div></div>' +
+      '<div class="kpi warn"><div class="k-v">' + (st.urgent + 2) + '</div><div class="k-k">超时预警</div></div>' +
+      '<div class="kpi ' + (gv.exceptions ? 'warn' : 'good') + '"><div class="k-v">' + gv.exceptions + '</div><div class="k-k">异常工单</div></div>' +
+      '<div class="kpi good"><div class="k-v">100<small>%</small></div><div class="k-k">回访记录率</div></div>' +
+      '</div>';
+
+    let body = '';
+    if (tab === 'dispatch') body = renderDispatch(s, st, extra, pendingTotal);
+    if (tab === 'exception') body = renderException(s);
+    if (tab === 'pool') body = renderPool();
+    if (tab === 'ledger') body = renderLedger(s);
+
+    return '<div class="screen ops" style="position:absolute;inset:0;display:flex;flex-direction:column">' +
+      '<div class="ops-top">' +
+      '<div class="ot-row"><div>' +
+      '<div class="ot-brand">食刻 · 调度中枢</div>' +
+      '<div class="ot-sub">' + SK.BRAND.street + ' · 助餐供需协同调度</div></div>' +
+      '<span class="ot-tag">' + SK.dispatcher.name + ' · 调度员</span>' +
+      '<span class="ot-live"><i></i>LIVE 11:0' + (new Date().getSeconds() % 10) + '</span>' +
+      '</div>' + kpis + '</div>' +
+      '<div class="ops-body">' + body + '</div>' +
+      '<div class="opsnav">' + OPS_TABS.map((t) =>
+        '<button class="' + (tab === t.k ? 'on' : '') + '" data-opstab="' + t.k + '">' +
+        SK.icon(t.ico, 18) + '<span>' + t.n + '</span></button>').join('') +
+      '<button data-go="home" style="opacity:.8">' + SK.icon('home', 17) + '<span>返回</span></button>' +
+      '</div></div>';
+  };
+
+  /* —— 派单 —— */
+  function renderDispatch(s, st, extra, pendingTotal) {
+    const ai = s.aiDone;
+    const rows = s.queue.map((q) => {
+      const cls = q.assigned ? 'done' : (q.urgent ? 'over' : '');
+      const rn = SK.routeName(q.route);
+      return '<div class="oitem ' + cls + '">' +
+        '<div class="oi-main">' +
+        '<div class="oi-t">' + esc(q.who) + ' · ' + esc(q.meal) + '</div>' +
+        '<div class="oi-s"><span>' + esc(q.addr) + '</span><span>' + q.dist + 'm</span>' +
+        q.tags.map((t) => '<span class="chip" style="height:16px;font-size:8.5px;padding:0 5px">' + esc(t) + '</span>').join('') +
+        '</div></div>' +
+        '<div class="oi-r"><span class="oi-route ' + (q.route === 'third' ? 'third' : q.route === 'vol' ? 'vol' : '') + '">' +
+        (q.assigned ? '✓ ' : '') + rn + '</span></div>' +
+        '</div>';
+    }).join('');
+
+    return '<div class="ops-sec"><div class="ai-card">' +
+      '<div class="ai-h"><span class="ai-dot">AI</span>智能体推荐方案' +
+      '<span style="margin-left:auto;font-size:9px;font-weight:600;color:#5C8471">' + (ai ? '已下发' : '待确认') + '</span></div>' +
+      '<div class="ai-reason">' +
+      '当前 <b>' + pendingTotal + '</b> 单待派，三家食堂同时出餐。按「老人标签优先级 + 半径分层 + 运力水位」给出建议：' +
+      '<b>专职队伍优先</b>（失能 / 需敲门回访 26 单），第三方补足 12 单，志愿者承接顺路探访 4 单；' +
+      '边缘片区 <b>6 单合并为 1 条路线</b>集约配送。' +
+      '</div>' +
+      '<div class="ai-alloc">' +
+      '<div class="alloc"><div class="a-v">26</div><div class="a-k">专职养老配送</div></div>' +
+      '<div class="alloc"><div class="a-v">12</div><div class="a-k">第三方即时配送</div></div>' +
+      '<div class="alloc"><div class="a-v">4</div><div class="a-k">网格员 / 志愿者</div></div>' +
+      '</div>' +
+      '<div class="ai-acts">' +
+      '<button class="btn" data-confirmall="1" ' + (ai ? 'disabled' : '') + '>' + (ai ? '已下发 42 单' : '一键下发 42 单') + '</button>' +
+      '<button class="btn ghost" data-go="poolhint" ' + (ai ? 'disabled' : '') + '>逐单确认</button>' +
+      '</div>' +
+      '<div class="tiny" style="margin-top:9px;color:#7A9186;line-height:1.6">关键约束（红线 6）：智能体只推荐，调度员拥有最终确认与改派权。</div>' +
+      '</div></div>' +
+
+      '<div class="ops-sec"><h4>待派列表<span class="n"> ' + pendingTotal + '</span>' +
+      '<span class="r">展示前 ' + s.queue.length + ' 条 · 按优先级排序</span></h4>' +
+      '<div class="olist">' + rows + '</div>' +
+      '<div class="tiny" style="margin-top:8px;line-height:1.7;color:#8C9A92">' +
+      '● 橙框为超时预警单（派单响应 &gt;15 分钟自动升级值班主管）　● 蓝色为第三方运力　● 橙色为志愿者顺路单</div>' +
+      '</div>' +
+
+      '<div class="ops-sec"><h4>改派留痕</h4>' +
+      '<div class="ocard" style="font-size:10px;line-height:1.8;color:#516259">' +
+      '每一次改派都会记录「操作人 / 时间 / 原因 / 原运力 → 新运力」，月底随台账一并交民政审计。<br>' +
+      '<button class="btn ghost sm mt12" data-reassign="1">演示：改派 1 单并填写原因</button>' +
+      '</div></div>' +
+      '<div style="height:14px"></div>';
+  }
+
+  /* —— 异常 —— */
+  function renderException(s) {
+    const list = s.exceptions.map((ex) => {
+      const cls = ex.state === 'closed' ? 'closed' : (ex.over ? 'overdue' : '');
+      let acts = '';
+      if (ex.state === 'open') {
+        acts = '<div class="exc-acts"><button class="btn" data-assignexc="' + ex.id + '">指派最近网格员</button>' +
+          '<button class="btn ghost" data-callfamily="' + ex.id + '">联系家属</button></div>';
+      } else if (ex.state === 'assigned') {
+        acts = '<div class="exc-acts"><button class="btn" data-closeexc="' + ex.id + '">记录上门结论</button>' +
+          '<button class="btn ghost" data-callfamily="' + ex.id + '">联系家属</button></div>';
+      } else {
+        acts = '<div class="exc-acts"><button class="btn ghost" data-excdetail="' + ex.id + '">查看闭环记录</button></div>';
+      }
+      return '<div class="exc ' + cls + '">' +
+        '<div class="exc-h"><span class="ex-t">' + esc(ex.who) + ' · ' + esc(ex.kind) + '</span>' +
+        '<span class="exc-time ' + (ex.state === 'closed' ? 'ok' : ex.over ? 'bad' : '') + '">' +
+        (ex.state === 'closed' ? '闭环 ' + ex.span : ex.state === 'assigned' ? '已指派' : '待指派') + '</span></div>' +
+        '<div class="exc-b">' + esc(ex.id) + ' · 关联订单 ' + esc(ex.orderId) + ' · ' + esc(ex.addr) + ' · 上报 ' + esc(ex.t) +
+        (ex.assignee && ex.assignee !== '—' ? '<br>处理人：' + esc(ex.assignee) : '') +
+        (ex.result ? '<br>结论：<b style="color:var(--deep)">' + esc(ex.result) + '</b>　' + esc(ex.act) : '') + '</div>' +
+        acts + '</div>';
+    }).join('');
+
+    return '<div class="ops-sec"><h4>异常工单中心<span class="r">SLA：10 分钟上门 · 24 小时闭环</span></h4>' +
+      list +
+      '<div class="ocard mt12" style="font-size:10px;line-height:1.85;color:#516259">' +
+      '<b>闭环链路：</b>骑手一键上报（照片/音频）→ 生成异常工单 → 按距离指派网格员 → 10 分钟内上门（开门 / 入院 / 外出 / 联系家属 四类结论）→ 撤单或补送 → <b>补贴核销回滚或重算</b> → 台账标注原因码。<br>' +
+      '<span class="tiny">红线 4：任何异常必须在 24 小时内留有结论记录，否则台账无法关闭。</span>' +
+      '</div>' +
+      '<div style="height:14px"></div></div>';
+  }
+
+  /* —— 运力 —— */
+  function renderPool() {
+    return '<div class="ops-sec"><h4>运力池水位<span class="r">11:00 高峰</span></h4>' +
+      '<div class="pool">' + SK.pools.map((p) =>
+        '<div class="p-card"><div class="p-n">' + esc(p.k) + '</div>' +
+        '<div class="p-v">' + p.v + '</div>' +
+        '<div class="p-bar"><i style="width:' + p.pct + '%;background:' + p.color + '"></i></div>' +
+        '<div class="p-l">' + esc(p.l) + '</div></div>').join('') + '</div>' +
+      '<div class="ocard mt12" style="font-size:10px;line-height:1.85;color:#516259">' +
+      '<b>切换规则（红线 3：运力不能只选一种）</b><br>' +
+      '① 专职队伍优先承接「失能 / 需敲门回访 / 需协助」等高风险标签单；<br>' +
+      '② 专职水位 &gt;85% 时自动回补第三方，保证 20 分钟内完成高峰派单；<br>' +
+      '③ 志愿者仅承接 1.5km 内顺路单并叠加探访任务，超负荷自动降级为纯探访；<br>' +
+      '④ 极端天气 / 志愿者断供时，按预案整体切换第三方并留痕成本。' +
+      '</div></div>' +
+
+      '<div class="ops-sec"><h4>配送半径分层</h4>' +
+      '<div class="ocard" style="font-size:10px;line-height:1.9;color:#516259">' +
+      '<b>≤620m</b>　核心层 · 专职上门，承诺 25 分钟<br>' +
+      '<b>620–1200m</b>　标准层 · 专职 + 第三方，承诺 40 分钟<br>' +
+      '<b>1200–1500m</b>　边缘层 · 合并路线 + 集中取餐点，集约配送<br>' +
+      '<b>&gt;1500m</b>　超半径 · 不安排上门，引导自取或预约流动餐车' +
+      '</div></div>' +
+      '<div style="height:14px"></div>';
+  }
+
+  /* —— 台账 —— */
+  function renderLedger(s) {
+    const t = SK.ledgerTotals();
+    const tab = s.ledgerTab || 'all';
+    let rows = s.ledger;
+    if (tab === 'sub') rows = s.ledger.filter((l) => l.subsidy > 0);
+    if (tab === 'self') rows = s.ledger.filter((l) => l.self > 0);
+
+    return '<div class="ops-sec"><div class="dual">' +
+      '<div class="d-card"><div class="d-k">补贴账（民政结算）</div><div class="d-v" style="color:var(--deep)">¥' + SK.money(t.subsidy) + '</div>' +
+      '<div class="d-s">' + s.ledger.filter((l) => l.subsidy > 0).length + ' 单 · 按单核销</div></div>' +
+      '<div class="d-card"><div class="d-k">自费账（商家分账）</div><div class="d-v" style="color:#B4551C">¥' + SK.money(t.self) + '</div>' +
+      '<div class="d-s">' + s.ledger.filter((l) => l.self > 0).length + ' 单 · 明码标价</div></div>' +
+      '</div>' +
+      '<div class="flex gap6 mt12">' +
+      ['all:全部', 'sub:补贴单', 'self:自费单'].map((x) => {
+        const [k, n] = x.split(':');
+        return '<button class="chip ' + (tab === k ? '' : 'grey') + '" data-ledgertab="' + k + '" style="height:26px;flex:1;justify-content:center">' + n + '</button>';
+      }).join('') + '</div>' +
+
+      '<div class="ltable mt12"><div class="lt-h"><span>订单 / 老人</span><span>补贴 / 自费</span><span>实付</span></div>' +
+      rows.map((l) =>
+        '<div class="lt-r"><div class="c1">' + esc(l.meal) + '<small>' + esc(l.id) + ' · ' + esc(l.who) + ' · ' + esc(l.time) + '</small></div>' +
+        '<div class="c2">' + (l.subsidy > 0 ? '<span style="color:var(--green)">补 ¥' + SK.money(l.subsidy) + '</span>' : '<span style="color:#B4551C">自 ¥' + SK.money(l.self) + '</span>') +
+        '<br><span style="font-size:8.5px;color:#8C9A92">' + esc(l.st) + '</span></div>' +
+        '<div class="c3">¥' + SK.money(l.pay) + '</div></div>').join('') +
+      '</div>' +
+
+      '<div class="flex gap7 mt12">' +
+      '<button class="btn soft" style="flex:1;height:38px;font-size:11.5px" data-export="1">' + SK.line('download', 15) + ' 导出台账 CSV</button>' +
+      '<button class="btn ghost" style="flex:1;height:38px;font-size:11.5px" data-go="gov">民政看板</button></div>' +
+      '<div class="tiny mt12" style="line-height:1.75;color:#8C9A92">' +
+      '台账包含：订单、补贴分档、核销量、温控回传、回访结论、渠道（线上 / 线下代登记）、改派留痕。月末一键导出交民政，替代 Excel 两套系统。</div>' +
+      '<div style="height:14px"></div></div>';
+  }
+
+  /* ============================== 民政看板 ============================== */
+
+  S.gov = function () {
+    const s = SK.store.s;
+    const gv = SK.govNow();
+    const max = Math.max.apply(null, SK.govStats.weeks.map((x) => x.v));
+    const min = Math.min.apply(null, SK.govStats.weeks.map((x) => x.v));
+    const bars = SK.govStats.weeks.map((x, i) =>
+      '<div class="bar ' + (i === 4 ? 'today' : '') + '"><i style="height:' +
+      (24 + Math.round(((x.v - min) / Math.max(1, max - min)) * 76)) + '%"></i><span>' + x.d + '</span></div>').join('');
+
+    const pct = 98.7;
+    const R = 26, C = 2 * Math.PI * R;
+
+    return SK.ui.statusbar() +
+      SK.ui.topbar('民政监管看板') +
+      '<div class="body">' +
+      '<div class="tiny" style="padding:0 var(--pad) 12px">' + SK.BRAND.street + ' · 助餐运营实况（演示数据）</div>' +
+
+      '<div class="gov-kpis" style="padding:0 var(--pad)">' +
+      '<div class="gk"><div class="gk-k">今日助餐总量</div><div class="gk-v">' + gv.total + '<small>份</small></div>' +
+      '<div class="gk-d">较昨日 +4.6%</div></div>' +
+      '<div class="gk"><div class="gk-k">补贴发放金额</div><div class="gk-v">¥' + Math.round(gv.subsidy) + '<small>元</small></div>' +
+      '<div class="gk-d">补贴准确率 99.3%</div></div>' +
+      '<div class="gk"><div class="gk-k">准时送达率</div><div class="gk-v">' + SK.govStats.deliverRate + '<small>%</small></div>' +
+      '<div class="gk-d">承诺 ≤45 分钟</div></div>' +
+      '<div class="gk"><div class="gk-k">餐温达标率</div><div class="gk-v">' + SK.govStats.tempRate + '<small>%</small></div>' +
+      '<div class="gk-d">≥60℃ 保温箱回传</div></div>' +
+      '<div class="gk"><div class="gk-k">半径合规率</div><div class="gk-v">100<small>%</small></div>' +
+      '<div class="gk-d">超半径 0 单上门</div></div>' +
+      '<div class="gk"><div class="gk-k">异常 24h 闭环</div><div class="gk-v">100<small>%</small></div>' +
+      '<div class="gk-d">' + gv.closed + ' 单已闭环 / ' + gv.exceptions + ' 单处理中</div></div>' +
+      '</div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>近 7 日助餐量<span class="ph-r">份</span></div>' +
+      '<div class="bars">' + bars + '</div></div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>补贴核销审计</div>' +
+      '<div class="gauge">' +
+      '<div class="g-ring"><svg width="64" height="64"><circle cx="32" cy="32" r="' + R + '" stroke="#EDF3EE" stroke-width="7" fill="none"/>' +
+      '<circle cx="32" cy="32" r="' + R + '" stroke="#27A76B" stroke-width="7" fill="none" stroke-linecap="round" ' +
+      'stroke-dasharray="' + C + '" stroke-dashoffset="' + (C * (1 - pct / 100)) + '"/></svg>' +
+      '<div class="g-txt">' + pct + '%</div></div>' +
+      '<div class="g-main"><div class="g-t">补贴分档与核销量一致</div>' +
+      '<div class="g-s">补贴单 / 自费单双轨建账 · 每笔可按单追溯<br>异常撤单已自动回滚核销</div></div>' +
+      '</div></div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>六条红线执行情况</div>' +
+      [['不能简化为普通外卖点餐', '5 类运力路径全覆盖'],
+       ['社会餐馆必须是重要供给', '签约 3 家 · 自费单 ' + s.ledger.filter((l) => l.self > 0).length + ' 笔'],
+       ['运力不能只选一种', '专职 / 第三方 / 志愿 三路在用'],
+       ['补贴梯度 + 闭合核销', '4 档梯度 · 核销率 99.3%'],
+       ['保留线下代登记通道', '代登记订单 ' + s.ledger.filter((l) => l.ch.indexOf('线下') >= 0).length + ' 笔'],
+       ['智能体只推荐、人工确认', '42 单全部经调度员确认']].map((r, i) =>
+        '<div class="redline"><span class="rl-i">✓</span><span class="rl-t">' + (i + 1) + '. ' + esc(r[0]) + '</span>' +
+        '<span class="rl-v">' + esc(r[1]) + '</span></div>').join('') +
+      '</div>' +
+
+      '<div class="panel"><div class="panel-h"><span class="ph-dot"></span>供给端水位</div>' +
+      [['三里庵社区食堂（助餐点）', '产能 320/400 份', 80], ['街道中央厨房（央厨）', '产能 640/800 份', 80], ['签约社会餐馆 3 家', '可承接 90 单/日', 45]]
+        .map((x) => '<div style="margin-bottom:11px"><div class="flex jcb" style="font-size:10.5px;margin-bottom:5px"><span>' + esc(x[0]) + '</span><span class="muted">' + esc(x[1]) + '</span></div>' +
+          '<div class="p-bar" style="height:5px;border-radius:3px;background:#EDF3EE;overflow:hidden"><i style="display:block;height:100%;width:' + x[2] + '%;background:linear-gradient(90deg,#7FD3AA,#27A76B);border-radius:3px"></i></div></div>').join('') +
+      '</div>' +
+
+      '<div class="flex gap10" style="padding:0 var(--pad)">' +
+      '<button class="btn soft" style="flex:1;height:42px;font-size:12px" data-export="1">导出台账</button>' +
+      '<button class="btn ghost" style="flex:1;height:42px;font-size:12px" data-go="ops">进调度中枢</button></div>' +
+      '<div class="center tiny" style="padding:14px 20px 20px">数据口径：街道助餐平台演示数据 · 仅用于答辩展示</div>' +
+      '</div>';
+  };
+})(window);
+</script>
+<script>
+/* ==== assets/app.js ==== */
+/* ==========================================================================
+   食刻 · 暖食一刻  |  app.js —— 路由、全局交互与启动
+   ========================================================================== */
+(function (w) {
+  'use strict';
+  const SK = w.SK;
+  const esc = SK.esc;
+
+  /* ------------------------------ 路由 ------------------------------ */
+
+  const ROUTES = ['home', 'orders', 'messages', 'profile', 'order', 'meal', 'addrs',
+    'pay', 'track', 'orderdetail', 'selfselect', 'subsidy', 'grid', 'voucher',
+    'ops', 'gov', 'about'];
+
+  let cur = { name: 'home', id: null };
+
+  /* 每个页面的「上一级」——保证返回键永远有去处，绝不跳出 Demo */
+  const PARENT = {
+    home: 'home', orders: 'home', messages: 'home', profile: 'home',
+    order: 'home', meal: 'order', addrs: 'meal', pay: 'meal',
+    track: 'home', orderdetail: 'orders', selfselect: 'home',
+    subsidy: 'home', grid: 'home', voucher: 'grid',
+    ops: 'home', gov: 'profile', about: 'profile'
+  };
+  const ROOTS = ['home', 'orders', 'messages', 'profile'];
+
+  /* 应用内导航栈：返回上一级用的是它，不依赖浏览器历史 */
+  let stack = [];
+
+  const hashOf = (r) => '#/' + r.name + (r.id ? '/' + r.id : '');
+  const sameRoute = (a, b) => !!a && !!b && a.name === b.name && (a.id || null) === (b.id || null);
+
+  const parseHash = () => {
+    const h = String(location.hash || '').replace(/^#\/?/, '');
+    if (!h) return { name: 'home', id: null };
+    const parts = h.split('/');
+    const name = ROUTES.indexOf(parts[0]) >= 0 ? parts[0] : 'home';
+    return { name, id: parts[1] ? decodeURIComponent(parts[1]) : null };
+  };
+
+  SK.go = function (name, params) {
+    if (name === 'poolhint') {
+      SK.toast('演示版：可逐单点右侧运力标签改派');
+      return;
+    }
+    if (ROUTES.indexOf(name) < 0) name = 'home';
+    const r = { name, id: (params && params.id) || null };
+    if (sameRoute(r, cur)) {
+      if (location.hash !== hashOf(r)) location.hash = hashOf(r);
+      else render(true);
+      return;
+    }
+    if (ROOTS.indexOf(name) >= 0) stack = [r];   // 切换底部 Tab：栈重置
+    else stack.push(r);
+    if (location.hash === hashOf(r)) { cur = r; clearOverlays(); render(false); }
+    else location.hash = hashOf(r);
+  };
+
+  /* 返回上一级：先退自己维护的栈，栈空则回预定义的上一级 */
+  SK.back = function () {
+    if (stack.length > 1) {
+      stack.pop();
+      const prev = stack[stack.length - 1];
+      if (location.hash === hashOf(prev)) { cur = prev; clearOverlays(); render(true); }
+      else location.hash = hashOf(prev);
+      return;
+    }
+    const p = PARENT[cur.name] || 'home';
+    if (p === cur.name) { SK.toast('已经是首页了'); return; }
+    stack = [{ name: p, id: null }];
+    if (location.hash === hashOf(stack[0])) { cur = stack[0]; clearOverlays(); render(false); }
+    else location.hash = hashOf(stack[0]);
+  };
+
+  /* 关系路径：给「返回」按钮加个看得懂的上级名字 */
+  const parentLabel = (n) => ({
+    home: '首页', orders: '我的订单', messages: '消息', profile: '我的',
+    order: '补贴套餐', meal: '套餐列表', addrs: '套餐详情', pay: '套餐详情',
+    track: '首页', orderdetail: '我的订单', selfselect: '首页',
+    subsidy: '首页', grid: '首页', voucher: '代登记',
+    ops: '首页', gov: '我的', about: '我的'
+  }[n] || '上一级');
+  SK.backLabel = function () {
+    const target = stack.length > 1 ? stack[stack.length - 2].name : (PARENT[cur.name] || 'home');
+    return parentLabel(target);
+  };
+
+  const clearOverlays = () => {
+    const f = SK.frame();
+    SK.$$('.sheet-wrap,.modal-wrap,.toast', f).forEach((n) => n.remove());
+  };
+
+  function render(keep) {
+    const app = SK.app();
+    const prev = app.querySelector('.body') || app.querySelector('.ops-body');
+    const st = prev ? prev.scrollTop : 0;
+    const fn = SK.screens[cur.name] || SK.screens.home;
+    const s = SK.store.s;
+    app.classList.toggle('big', !!s.settings.big);
+    app.innerHTML = fn({ id: cur.id }) || SK.screens.home({ id: cur.id });
+    if (fn.after) fn.after(app, { id: cur.id });
+    if (keep) {
+      const nx = app.querySelector('.body') || app.querySelector('.ops-body');
+      if (nx) nx.scrollTop = st;
+    } else {
+      const nx = app.querySelector('.body');
+      if (nx) nx.scrollTop = 0;
+    }
+    SK.speak(s.settings.voice ? '' : '');
+  }
+
+  SK.refresh = function () { clearOverlays(); render(true); };
+  SK.refreshSoft = function () { render(true); };
+
+  w.addEventListener('hashchange', () => {
+    const nx = parseHash();
+    const n = stack.length;
+    if (n === 0) {
+      stack = [nx];
+    } else if (sameRoute(nx, stack[n - 1])) {
+      /* 由 SK.go / SK.back 触发，栈已同步 */
+    } else if (n >= 2 && sameRoute(nx, stack[n - 2])) {
+      stack.pop();
+    } else {
+      const idx = stack.findIndex((r) => sameRoute(r, nx));
+      if (idx >= 0) stack = stack.slice(0, idx + 1);
+      else stack.push(nx);
+    }
+    cur = nx;
+    clearOverlays();
+    render(false);
+  });
+
+  /* 手机边缘右滑 → 返回上一级（老人更容易发现的手势） */
+  (function edgeSwipe() {
+    let sx = 0, sy = 0, active = false;
+    const app = () => SK.app();
+    document.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      active = t.clientX <= 28;
+      if (active) { sx = t.clientX; sy = t.clientY; }
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      if (!active) return;
+      active = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - sx, dy = Math.abs(t.clientY - sy);
+      if (dx > 62 && dy < 55 && app().contains(e.target)) SK.back();
+    }, { passive: true });
+  })();
+
+  /* ------------------------------ 交互 ------------------------------ */
+
+  const D = () => SK.draft;
+
+  function applySetting(key) {
+    const s = SK.store.s;
+    s.settings[key] = !s.settings[key];
+    SK.commit(false);
+  }
+
+  function boot() {
+    SK.store.init();
+    cur = parseHash();
+    render(false);
+    SK.startClock();
+
+    const sp = document.getElementById('splash');
+    if (sp) setTimeout(() => { sp.classList.add('gone'); setTimeout(() => sp.remove(), 600); }, 1150);
+  }
+
+  /* 全局委托 */
+  document.addEventListener('click', (e) => {
+    const app = SK.app();
+
+    /* —— 导航 —— */
+    const g = e.target.closest('[data-go]');
+    if (g && app.contains(g)) {
+      const to = g.dataset.go;
+      const id = g.dataset.id || null;
+      if (to === 'track' && !SK.store.s.activeOrder) { SK.toast('当前没有进行中的订单'); return; }
+      SK.go(to, id ? { id } : null);
+      return;
+    }
+    if (e.target.closest('[data-back]')) { SK.back(); return; }
+
+    if (!app.contains(e.target) && !e.target.closest('.sheet-wrap,.modal-wrap')) return;
+
+    const t = (sel) => e.target.closest(sel);
+
+    /* —— 下单 —— */
+    const buy = t('[data-buy]');
+    if (buy) {
+      D().mealId = buy.dataset.buy;
+      D().qty = 1;
+      SK.go('meal', { id: D().mealId });
+      return;
+    }
+
+    const dr = t('[data-draft]');
+    if (dr) {
+      const [k, v] = dr.dataset.draft.split(':');
+      if (k === 'soft') D().soft = v;
+      else D()[k] = !D()[k];
+      SK.refresh();
+      return;
+    }
+
+    const al = t('[data-al]');
+    if (al) {
+      const a = al.dataset.al;
+      const i = D().allergy.indexOf(a);
+      if (i >= 0) D().allergy.splice(i, 1); else D().allergy.push(a);
+      SK.refresh();
+      return;
+    }
+
+    const tm = t('[data-time]');
+    if (tm) { D().timeIdx = Number(tm.dataset.time); SK.refresh(); return; }
+
+    const q = t('[data-qty]');
+    if (q) {
+      D().qty = Math.max(1, D().qty + Number(q.dataset.qty));
+      SK.refresh();
+      return;
+    }
+
+    const pa = t('[data-pickaddr]');
+    if (pa) {
+      D().addrId = pa.dataset.pickaddr;
+      const a = SK.addresses.find((x) => x.id === D().addrId);
+      const chk = SK.checkAddr(a);
+      if (!chk.ok) { SK.toast('该地址超出上门半径，可改为到点自取'); }
+      SK.back();
+      return;
+    }
+
+    if (t('[data-confirm-order]')) {
+      const a = SK.addresses.find((x) => x.id === D().addrId) || SK.addresses[0];
+      const chk = SK.checkAddr(a);
+      if (!chk.ok) {
+        SK.ui.modal({
+          title: '超出配送半径',
+          text: '「' + a.name + '」距离助餐点超过 ' + chk.R + ' 米，无法安排上门配送。建议改用社区活动室集中取餐点自取，或预约流动餐车。',
+          actions: [{ t: '去选地址', fn: () => SK.go('addrs') }, { t: '知道了', cls: 'ghost' }]
+        });
+        return;
+      }
+      SK.go('pay');
+      return;
+    }
+
+    const pm = t('[data-pay]');
+    if (pm) { D().payMethod = pm.dataset.pay; SK.refresh(); return; }
+
+    if (t('[data-dopay]')) {
+      const btn = t('[data-dopay]');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+      setTimeout(() => {
+        const o = SK.placeOrder({
+          mealId: D().mealId, qty: D().qty, soft: D().soft,
+          lessSalt: D().lessSalt, lessOil: D().lessOil,
+          allergy: D().allergy.slice(), note: D().note,
+          knock: D().knock, addrId: D().addrId, payMethod: D().payMethod
+        });
+        SK.toast('支付成功 · 已抵扣 ¥' + SK.money(o.subsidy), '✅');
+        SK.speak('下单成功，' + o.mealName.replace('补贴套餐 · ', '') + '，实付' + SK.money(o.pay) + '元');
+        SK.go('track');
+      }, 620);
+      return;
+    }
+
+    /* —— 追踪 / 演示 —— */
+    if (t('[data-advance]')) {
+      SK.advanceOrder(SK.store.s.activeOrder);
+      SK.refresh();
+      return;
+    }
+
+    if (t('[data-simexc]')) {
+      SK.ui.modal({
+        title: '骑手端一键上报',
+        text: '李师傅：敲了 3 次门，屋里没人应答，电话也没人接。已拍门口照片。是否上报异常？',
+        actions: [
+          {
+            t: '上报异常',
+            fn: () => {
+              const a = SK.store.s.activeOrder;
+              const ex = SK.createException(a.id, SK.elder.name, a.addr, '敲门 3 次无人应答');
+              SK.store.s.opsTab = 'exception';
+              SK.toast('异常工单 ' + ex.id + ' 已生成', '⚠️');
+              SK.go('ops');
+            }
+          },
+          { t: '再等 5 分钟', cls: 'ghost' }
+        ]
+      });
+      return;
+    }
+
+    if (t('[data-call]')) { SK.toast('正在呼叫骑手 156****8820'); return; }
+
+    /* —— 自费 —— */
+    const ad = t('[data-add]');
+    if (ad) { SK.addDish(ad.dataset.add); return; }
+    const sb = t('[data-sub]');
+    if (sb) { SK.subDish(sb.dataset.sub); return; }
+    if (t('[data-cart]')) { SK.openCart(); return; }
+    if (t('[data-doself]')) {
+      const id = SK.placeSelfOrder(D().payMethod);
+      if (id) {
+        SK.toast('自费订单已提交 · 40 分钟内送达');
+        SK.go('orders');
+      }
+      return;
+    }
+
+    /* —— 列表 / 设置 —— */
+    const ot = t('[data-otab]');
+    if (ot) { SK.store.s.orderTab = ot.dataset.otab; SK.commit(); return; }
+
+    const mg = t('[data-msg]');
+    if (mg) {
+      const m = SK.store.s.messages.find((x) => x.id === mg.dataset.msg);
+      if (m) { m.unread = false; SK.store.s.unread = SK.store.s.messages.filter((x) => x.unread).length; SK.commit(); }
+      return;
+    }
+    if (t('[data-readall]')) {
+      SK.store.s.messages.forEach((m) => { m.unread = false; });
+      SK.store.s.unread = 0;
+      SK.commit();
+      SK.toast('已全部标为已读');
+      return;
+    }
+
+    const st = t('[data-set]');
+    if (st) { applySetting(st.dataset.set); return; }
+
+    if (t('[data-reset]')) {
+      SK.confirm('重置演示数据？', '会清空本次演示产生的订单、工单与消息，恢复到高保真稿的初始状态。', '重置', '取消')
+        .then((ok) => { if (ok) { SK.store.reset(); SK.go('home'); SK.toast('已重置演示数据'); } });
+      return;
+    }
+
+    const ro = t('[data-reorder]');
+    if (ro) {
+      const s = SK.store.s;
+      const o = s.orders.find((x) => x.id === ro.dataset.reorder);
+      const m = o && SK.meals.find((x) => o.mealName.indexOf(x.name) >= 0);
+      if (m) { D().mealId = m.id; SK.go('meal', { id: m.id }); }
+      else SK.go('order');
+      return;
+    }
+
+    /* —— 网格员代登记 —— */
+    const gs = t('[data-gridsel]');
+    if (gs) {
+      const s = SK.store.s;
+      const id = gs.dataset.gridsel;
+      const i = s.gridSel.indexOf(id);
+      if (i >= 0) s.gridSel.splice(i, 1); else s.gridSel.push(id);
+      SK.commit();
+      return;
+    }
+    if (t('[data-gridall]')) {
+      const s = SK.store.s;
+      s.gridSel = s.gridSel.length === SK.gridElders.length ? [] : SK.gridElders.map((x) => x.id);
+      SK.commit();
+      return;
+    }
+    if (t('[data-gridmake]')) {
+      const s = SK.store.s;
+      if (!s.gridSel.length) { SK.toast('请先选择老人'); return; }
+      const elders = SK.gridElders.filter((x) => s.gridSel.indexOf(x.id) >= 0);
+      s.gridBatch = {
+        no: 'ZP' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-00' + elders.length,
+        elders, voice: s.gridVoice || '少盐、软食，不吃辣'
+      };
+      s.queue.unshift({
+        id: s.gridBatch.no, who: elders[0].name + ' 等 ' + elders.length + ' 位',
+        addr: elders[0].addr, dist: 620, tags: ['线下通道', '代登记', '敲门回访'],
+        meal: '清蒸鲈鱼饭 ×' + elders.length, route: 'vol', urgent: 0, assigned: false
+      });
+      SK.pushMsg('📝', '网格员代登记 ' + elders.length + ' 单', '王海代登记 ' + elders.length + ' 位老人，已生成纸质凭证 ' + s.gridBatch.no + '，等待手写签收。', '代登记');
+      SK.commit(false);
+      SK.go('voucher');
+      return;
+    }
+    if (t('[data-sigdone]')) {
+      const s = SK.store.s;
+      if (!s._signed) { SK.toast('请先请老人手写签收'); return; }
+      const n = s.gridBatch ? s.gridBatch.elders.length : 6;
+      SK.gridWorker.hours += 0.5;
+      SK.pushMsg('✅', '纸质凭证已回写台账', n + ' 位老人完成签收，凭证已计入街道公示台账；志愿时长 +0.5h。', '台账');
+      s.gridVoice = '';
+      s.gridBatch = null;
+      s._signed = false;
+      SK.commit(false);
+      SK.ui.modal({
+        title: '签收完成 · 已回写台账',
+        text: n + ' 位老人的取餐凭证已核销，志愿时长 +0.5h。当晚 20:00 前同步到台账，可计入志愿时长认定。',
+        actions: [{ t: '返回代登记', fn: () => SK.go('grid') }, { t: '回首页', cls: 'ghost', fn: () => SK.go('home') }]
+      });
+      return;
+    }
+
+    /* —— 调度中枢 —— */
+    const op = t('[data-opstab]');
+    if (op) { SK.store.s.opsTab = op.dataset.opstab; SK.commit(); return; }
+
+    if (t('[data-confirmall]')) {
+      const n = SK.confirmAll();
+      SK.toast('已下发 42 单 · 派单响应 ≤20 分钟', '📤');
+      SK.refresh();
+      return;
+    }
+
+    if (t('[data-reassign]')) {
+      const s = SK.store.s;
+      const pend = s.queue.filter((x) => !x.assigned);
+      if (!pend.length) { SK.toast('没有待改派的订单'); return; }
+      SK.ui.actionSheet('选择要改派的订单', pend.slice(0, 6).map((x) => ({
+        t: x.who + ' · ' + x.meal, s: x.id + ' · ' + x.addr + ' · ' + x.dist + 'm', ico: '📦'
+      }))).then((pick) => {
+        if (!pick) return;
+        const target = pend.slice(0, 6).find((x) => pick.t.indexOf(x.who) === 0);
+        SK.ui.actionSheet('改派至哪一路运力', [
+          { t: '专职养老配送', s: '适合失能 / 需敲门回访', ico: '🛵' },
+          { t: '第三方即时配送', s: '适合边缘片区 / 高峰回补', ico: '🚚' },
+          { t: '网格员 / 志愿者', s: '顺路单 + 探访任务', ico: '🏃' }
+        ]).then((r2) => {
+          if (!r2) return;
+          const map = { '专职养老配送': 'full', '第三方即时配送': 'third', '网格员 / 志愿者': 'vol' };
+          SK.ui.actionSheet('改派原因（留痕用）', [
+            { t: '专职水位已满', ico: '💧' }, { t: '老人临时改约时间', ico: '🕒' },
+            { t: '地址修正 / 楼栋变更', ico: '🏠' }, { t: '志愿者超负荷，降级为探访', ico: '⚠️' }
+          ]).then((r3) => {
+            if (!r3) return;
+            SK.reassignOne(target.id, map[r2.t], r3.t);
+            SK.toast('已改派 ' + target.id + ' → ' + r2.t);
+            SK.refresh();
+          });
+        });
+      });
+      return;
+    }
+
+    const ae = t('[data-assignexc]');
+    if (ae) {
+      SK.assignException(ae.dataset.assignexc);
+      SK.toast('已指派王海 · 要求 10 分钟内上门');
+      SK.refresh();
+      return;
+    }
+
+    const ce = t('[data-closeexc]');
+    if (ce) {
+      SK.ui.actionSheet('网格员上门结论', [
+        { t: '开门 · 状态正常', s: '订单保留，正常送达', ico: '✅' },
+        { t: '确认老人入院', s: '撤单并回滚补贴核销', ico: '🏥' },
+        { t: '确认老人外出', s: '餐留取餐点保温柜 + 电话留条', ico: '🚶' },
+        { t: '联系家属代为确认', s: '由家属决定撤单或补送', ico: '📞' }
+      ]).then((r) => {
+        if (!r) return;
+        const txt = r.t.indexOf('开门') === 0 ? '老人开门 · 状态正常'
+          : r.t.indexOf('入院') > -1 ? '确认老人入院'
+          : r.t.indexOf('外出') > -1 ? '确认老人外出' : '联系家属代为确认';
+        SK.closeException(ce.dataset.closeexc, txt);
+        SK.toast('异常已闭环 · 补贴核销已处理');
+        SK.refresh();
+      });
+      return;
+    }
+
+    const ed = t('[data-excdetail]');
+    if (ed) {
+      const ex = SK.store.s.exceptions.find((x) => x.id === ed.dataset.excdetail);
+      if (ex) {
+        SK.ui.modal({
+          title: ex.id + ' · 闭环记录',
+          text: '老人：' + ex.who + '\n结论：' + ex.result + '\n处理：' + ex.act + '\n耗时：' + ex.span +
+            '\n\n24 小时内已留结论记录，台账可关闭。补贴核销与撤单动作均已写入审计日志。',
+          actions: [{ t: '知道了' }]
+        });
+      }
+      return;
+    }
+
+    if (t('[data-callfamily]')) { SK.toast('正在呼叫家属 136****9027'); return; }
+
+    const lt = t('[data-ledgertab]');
+    if (lt) { SK.store.s.ledgerTab = lt.dataset.ledgertab; SK.commit(); return; }
+
+    if (t('[data-export]')) {
+      SK.exportLedger();
+      SK.toast('台账已导出为 CSV', '📄');
+      return;
+    }
+  });
+
+  /* 备注输入 */
+  document.addEventListener('input', (e) => {
+    if (e.target.matches('[data-note]')) {
+      SK.draft.note = e.target.value;
+    }
+  });
+
+  /* 网格员语音按钮 */
+  document.addEventListener('click', (e) => {
+    const vb = e.target.closest('#voiceBtn');
+    if (!vb) return;
+    const res = document.getElementById('voiceRes');
+    if (!res || vb.dataset.rec) return;
+    vb.dataset.rec = '1';
+    vb.classList.add('rec');
+    res.innerHTML = '<span style="color:#8C9A92">正在聆听…</span><span class="blink"></span>';
+    const full = '钱秀兰的邻居张桂芳，少盐、软食，不吃辣，每天中午十一点半前送到。';
+    let i = 0;
+    const timer = setInterval(() => {
+      i += 2;
+      res.innerHTML = '<span class="vw">' + SK.esc(full.slice(0, i)) + '</span><span class="blink"></span>';
+      if (i >= full.length) {
+        clearInterval(timer);
+        setTimeout(() => {
+          vb.classList.remove('rec');
+          delete vb.dataset.rec;
+          SK.store.s.gridVoice = full;
+          SK.commit(false);
+          res.innerHTML = '<span class="vw">' + SK.esc(full) + '</span>';
+          const t = document.querySelector('.voice .v-t');
+          if (t) t.textContent = '已识别，可继续补充或直接生成凭证';
+          SK.toast('语音已转文字 · 忌口标签已提取：「少盐、软食、不吃辣」');
+        }, 320);
+      }
+    }, 42);
+  });
+
+  /* 启动 */
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})(window);
+
+</script>
+</body>
+</html>
